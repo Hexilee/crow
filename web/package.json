@@ -1,0 +1,30 @@
+{
+  "name": "crow",
+  "version": "1.0.0",
+  "description": "3D curve reconstruction based on fiber bragg grating",
+  "main": "index.js",
+  "author": "Li Chenxi",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@types/dat.gui": "^0.7.5",
+    "@types/stats": "^0.16.30",
+    "dat.gui": "^0.7.6",
+    "grpc-web": "^1.0.7",
+    "stats.js": "^0.17.0",
+    "three": "^0.111.0",
+    "three-orbitcontrols-ts": "^0.1.2"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "json-server": "^0.15.1",
+    "parcel-bundler": "^1.12.4",
+    "typescript": "^3.7.2"
+  },
+  "scripts": {
+    "dev": "parcel src/index.html",
+    "build": "parcel build src/index.html",
+    "serve": "hs dist"
+  }
+}
