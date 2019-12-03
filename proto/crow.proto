@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+message Point {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message Curve {
+    uint64 timestamp = 1;
+    repeated Point points = 2;
+}
+
+message CurveRequest {
+    uint32 start = 1;
+    uint32 length = 2;
+}
+
+service CurveService {
+    rpc getCurve(CurveRequest) returns (stream Curve);
+}
