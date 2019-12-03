@@ -22,10 +22,11 @@ const material = new THREE.MeshPhongMaterial({
 const geometry = new THREE.TorusKnotBufferGeometry(0.4, 0.08, 95, 20)
 const object = new THREE.Mesh(geometry, material)
 object.castShadow = true
-
-
 init()
 const startTime = Date.now()
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.target.set(0, 1, 0)
+controls.enableDamping = true
 animate()
 
 function init() {
@@ -76,10 +77,6 @@ function init() {
     const Empty: any[] = []
     renderer.clippingPlanes = [] // GUI sets it to globalPlanes
     renderer.localClippingEnabled = true
-// Controls
-    let controls = new OrbitControls(camera, renderer.domElement)
-    controls.target.set(0, 1, 0)
-    controls.update()
 // GUI
     let gui = new GUI(),
         folderLocal = gui.addFolder('Local Clipping'),
@@ -135,11 +132,14 @@ function onWindowResize() {
 function animate() {
     let currentTime = Date.now()
     let time = (currentTime - startTime) / 1000
+    // Controls
     requestAnimationFrame(animate)
+    controls.update()
     object.position.y = 0.8
     object.rotation.x = time * 0.5
     object.rotation.y = time * 0.2
     object.scale.setScalar(Math.cos(time) * 0.125 + 0.875)
+
     stats.begin()
     renderer.render(scene, camera)
     stats.end()
