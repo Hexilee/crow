@@ -7,9 +7,15 @@
     - three.js
 - grpc-web
 
-#### Development Tools(Recommended)
+#### Development Tools
 
-- yarn
+- protobuf
+
+```bash
+> protoc --version
+```
+
+- yarn(Recommended)
 
 ```bash
 > yarn install
@@ -34,3 +40,11 @@ Then you can serve `dist` fold.
 ```
 
 This script will run a simple `http-server` on `dist` fold.
+
+#### Regenerate GRPC Code
+
+Run after proto files are changed, just:
+
+```bash
+> yarn install
+```

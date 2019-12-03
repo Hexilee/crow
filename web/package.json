@@ -10,6 +10,7 @@
     "@types/dat.gui": "^0.7.5",
     "@types/stats": "^0.16.30",
     "dat.gui": "^0.7.6",
+    "google-protobuf": "^3.11.0",
     "grpc-web": "^1.0.7",
     "stats.js": "^0.17.0",
     "three": "^0.111.0",
@@ -20,9 +21,12 @@
     "babel-preset-env": "^1.7.0",
     "json-server": "^0.15.1",
     "parcel-bundler": "^1.12.4",
+    "protoc-gen-grpc-web": "^1.0.5",
     "typescript": "^3.7.2"
   },
   "scripts": {
+    "install": "yarn protoc",
+    "protoc": "protoc -I=src/gen/grpc ../proto/crow.proto --grpc-web_out=import_style=typescript,mode=grpcweb:src/gen/grpc/ --proto_path=../proto/",
     "dev": "parcel src/index.html",
     "build": "parcel build src/index.html",
     "serve": "hs dist"
