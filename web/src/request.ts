@@ -1,14 +1,14 @@
 import { CurveServiceClient } from './gen/grpc/CrowServiceClientPb'
 import { Curve, CurveRequest } from './gen/grpc/crow_pb'
-import { ClientReadableStream } from 'grpc-web'
+import { ClientReadableStream, Error, Status } from 'grpc-web'
 
 export abstract class CurveReactor {
-    private _hostname: string
-    private _credentials: null | { [index: string]: string; }
-    private _options: null | { [index: string]: string; }
-    protected client: CurveServiceClient
-    protected channel: ClientReadableStream<Curve>
-    public request: CurveRequest
+    _hostname: string
+    _credentials: null | { [index: string]: string; }
+    _options: null | { [index: string]: string; }
+    _request: CurveRequest
+    client: CurveServiceClient
+    channel: ClientReadableStream<Curve>
 
     protected constructor(hostname: string, request: CurveRequest,
                           credentials?: { [index: string]: string; },
@@ -16,8 +16,10 @@ export abstract class CurveReactor {
         this._hostname = hostname
         this._credentials = credentials || null
         this._options = options || null
-        this.request = request
-        this.updateChannel()
+        this._request = request
+        this.client = new CurveServiceClient(this.hostname, this.credentials, this.options)
+        this.channel = this.sendRequest()
+        this.setCallback()
     }
 
     get hostname(): string {
@@ -47,17 +49,42 @@ export abstract class CurveReactor {
         this.updateClient()
     }
 
+    get request(): CurveRequest {
+        return this._request
+    }
+
+    set request(value: CurveRequest) {
+        this._request = value
+        this.updateChannel()
+    }
+
     updateClient() {
-        this.channel.cancel()
         this.client = new CurveServiceClient(this.hostname, this.credentials, this.options)
+        this.updateChannel()
+    }
+
+    updateChannel() {
+        this.channel.cancel()
+        this.channel = this.sendRequest()
+        this.setCallback()
     }
 
     sendRequest(): ClientReadableStream<Curve> {
         return this.client.getCurve(this.request)
     }
 
-    updateChannel() {
-        this.client = new CurveServiceClient(this.hostname, this.credentials, this.options)
-        this.channel = this.sendRequest()
+    setCallback() {
+        this.channel.on('data', this.onData)
+        this.channel.on('status', this.onStatus)
+        this.channel.on('error', this.onError)
+        this.channel.on('end', this.onEnd)
     }
+
+    abstract onData(data: Curve): void
+
+    abstract onStatus(stat: Status): void
+
+    abstract onError(err: Error): void
+
+    abstract onEnd(): void
 }
