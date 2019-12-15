@@ -2,14 +2,13 @@ use super::Channel;
 use futures_util::lock::Mutex;
 use futures_util::sink::SinkExt;
 use proto::{
-    server::{CurveService, CurveServiceServer},
-    Curve, CurveRequest, Point,
+    Curve, Point,
 };
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tokio::sync::mpsc;
 use tokio::timer::delay_for;
-use tonic::{transport::Server, Request, Response, Status};
+use tonic::Status;
 
 pub fn mock_channel() -> Channel {
     let channel = Arc::new(Mutex::new(Vec::<
