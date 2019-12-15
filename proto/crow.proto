@@ -13,6 +13,7 @@ message Curve {
 }
 
 message CurveRequest {
+    uint64 index = 1;
 }
 
 service CurveService {
