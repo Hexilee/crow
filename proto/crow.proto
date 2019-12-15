@@ -13,8 +13,6 @@ message Curve {
 }
 
 message CurveRequest {
-    uint32 start = 1;
-    uint32 length = 2;
 }
 
 service CurveService {

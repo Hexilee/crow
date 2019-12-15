@@ -225,3 +225,17 @@ ij_json_space_before_comma = false
 ij_json_spaces_within_braces = false
 ij_json_spaces_within_brackets = false
 ij_json_wrap_long_lines = false
+
+[*.proto]
+ij_proto_keep_indents_on_empty_lines = false
+
+[*.rs]
+max_line_length = 100
+ij_continuation_indent_size = 4
+ij_rust_align_multiline_chained_methods = true
+ij_rust_align_multiline_parameters = true
+ij_rust_align_multiline_parameters_in_calls = true
+ij_rust_keep_blank_lines_in_code = 2
+ij_rust_keep_blank_lines_in_declarations = 2
+ij_rust_keep_indents_on_empty_lines = false
+ij_rust_keep_line_breaks = true

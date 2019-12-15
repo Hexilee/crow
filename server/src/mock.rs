@@ -1,12 +1,12 @@
-use tonic::{transport::Server, Request, Response, Status};
-use tokio::sync::mpsc;
-use tokio::timer::delay_for;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use futures_util::sink::SinkExt;
 use proto::{
     server::{CurveService, CurveServiceServer},
     Curve, CurveRequest, Point,
 };
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use tokio::sync::mpsc;
+use tokio::timer::delay_for;
+use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Default)]
 pub struct MockCurveService {}
@@ -23,13 +23,16 @@ impl CurveService for MockCurveService {
         tokio::spawn(async move {
             loop {
                 delay_for(Duration::from_millis(500)).await;
-                let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64;
+                let timestamp = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis() as u64;
                 let mut points = Vec::new();
                 for i in 1..20 {
                     let f = i as f32;
-                    points.push(Point {x: f, y: f, z: f});
+                    points.push(Point { x: f, y: f, z: f });
                 }
-                tx.send(Ok(Curve {timestamp, points})).await.unwrap();
+                tx.send(Ok(Curve { timestamp, points })).await.unwrap();
             }
         });
         Ok(Response::new(rx))

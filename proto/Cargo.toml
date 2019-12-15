@@ -9,7 +9,7 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tonic = { version = "0.1.0-alpha.6", features = ["tls"] }
+tonic = "0.1.0-alpha.6"
 prost = "0.5"
 bytes = "0.4"
 
