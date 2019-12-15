@@ -15,7 +15,3 @@ futures-core-preview = "=0.3.0-alpha.19"
 futures-util-preview = "=0.3.0-alpha.19"
 proto = { path = "../proto" }
 aljabar = "0.4"
-
-[[bin]]
-name = "mock"
-path = "src/mock.rs"
