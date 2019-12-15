@@ -19,7 +19,17 @@ const material = new THREE.MeshPhongMaterial({
     clippingPlanes: [localPlane],
     clipShadows: true,
 })
-const geometry = new THREE.TorusKnotBufferGeometry(0.4, 0.08, 95, 20)
+
+const curve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-2, 0, 2),
+    new THREE.Vector3(-1, 1, 1),
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(1, -1, 1),
+    new THREE.Vector3(2, 0, 2),
+])
+const geometry = new THREE.TubeGeometry(
+    curve,  //path
+);
 const object = new THREE.Mesh(geometry, material)
 object.castShadow = true
 init()

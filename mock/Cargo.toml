@@ -1,5 +1,5 @@
 [package]
-name = "crow-mock"
+name = "mock"
 version = "0.1.0"
 authors = ["Hexilee <i@hexilee.me>"]
 edition = "2018"
@@ -10,10 +10,7 @@ license = "MIT"
 
 [dependencies]
 tonic = { version = "0.1.0-alpha.6", features = ["tls"] }
-bytes = "0.4"
-prost = "0.5"
 tokio = { version = "=0.2.0-alpha.6" }
 futures-core-preview = "=0.3.0-alpha.19"
 futures-util-preview = "=0.3.0-alpha.19"
-[build-dependencies]
-tonic-build = "0.1.0-alpha.6"
+proto = { path = "../proto" }

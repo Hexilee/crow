@@ -3,12 +3,7 @@ use tokio::sync::mpsc;
 use tokio::timer::delay_for;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use futures_util::sink::SinkExt;
-
-pub mod crow {
-    tonic::include_proto!("crow");
-}
-
-use crow::{
+use proto::{
     server::{CurveService, CurveServiceServer},
     Curve, CurveRequest, Point,
 };
