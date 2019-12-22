@@ -1,9 +1,7 @@
 use super::Channel;
 use futures_util::lock::Mutex;
 use futures_util::sink::SinkExt;
-use proto::{
-    Curve, Point,
-};
+use proto::{Curve, Point};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tokio::sync::mpsc;
@@ -24,7 +22,7 @@ pub fn mock_channel() -> Channel {
                 .as_millis() as u64;
             let mut points = Vec::new();
             for i in 1..20 {
-                let f = i as f32;
+                let f = i as f64;
                 points.push(Point { x: f, y: f, z: f });
             }
             for sender in channel.lock().await.iter_mut() {
