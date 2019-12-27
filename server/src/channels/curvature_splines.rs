@@ -1,4 +1,4 @@
-use nalgebra::{Matrix3, Matrix4, Vector3, Vector4};
+use nalgebra::{Matrix3, Matrix4, Vector4};
 use num::{Float, One};
 use proto::Point;
 
@@ -28,7 +28,7 @@ impl CurvatureSplines {
             let da = cos_alpha * (1.0 - cos_theta) / k;
             let db = sin_alpha * (1.0 - cos_theta) / k;
             let dc = sin_theta / k;
-            let point_matrix = ti.pseudo_inverse(f64::min_value())? * Vector4::new(da, db, dc, 1.0);
+            let point_matrix = ti.pseudo_inverse(0.01)? * Vector4::new(da, db, dc, 1.0);
             let point_vector = point_matrix.column(0);
             points.push(Point {
                 x: point_vector[0] / point_vector[3],
@@ -59,5 +59,44 @@ impl CurvatureSplines {
             ) * ti;
         }
         Ok(points)
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use proto::Point;
+    use super::{CurvatureSplines, CurvatureSpline};
+
+    #[test]
+    fn to_curve() -> Result<(), &'static str> {
+        let points = CurvatureSplines {
+            ds: 0.1,
+            splines: vec![
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.2, kb: 0.25},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.3, kb: 0.05},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.0, kb: 0.15},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.1, kb: 0.0},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.1, kb: 0.15},
+                CurvatureSpline {ka: 0.1, kb: 0.15}
+            ],
+        }.to_curve()?;
+        for Point{x, y, z} in points {
+            println!("x: {}, y: {}, z: {}",x, y, z);
+        };
+        Ok(())
     }
 }
