@@ -17,3 +17,6 @@ proto = { path = "../proto" }
 aljabar = "0.4"
 nalgebra = "0.19"
 num = "0.2"
+
+[dev-dependencies]
+pprof = { version = "0.3", features = ["flamegraph"] }
