@@ -1,21 +1,21 @@
 use super::Channel;
-use futures_util::lock::Mutex;
-use futures_util::sink::SinkExt;
+use futures::channel::mpsc::{UnboundedReceiver, UnboundedSender};
+use futures::lock::Mutex;
+use futures::sink::SinkExt;
+use futures_timer::Delay;
 use proto::{Curve, Point};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use tokio::sync::mpsc;
-use tokio::timer::delay_for;
 use tonic::Status;
 
 pub fn mock_channel() -> Channel {
-    let channel = Arc::new(Mutex::new(Vec::<
-        mpsc::UnboundedSender<Result<Curve, Status>>,
-    >::new()));
+    let channel = Arc::new(Mutex::new(
+        Vec::<UnboundedSender<Result<Curve, Status>>>::new(),
+    ));
     let channel_cpy = channel.clone();
     tokio::spawn(async move {
         loop {
-            delay_for(Duration::from_millis(500)).await;
+            Delay::new(Duration::from_millis(500)).await;
             let timestamp = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()

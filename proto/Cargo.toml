@@ -9,8 +9,8 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tonic = "0.1.0-alpha.6"
-prost = "0.5"
+tonic = "0.1"
+prost = "0.6"
 bytes = "0.4"
 
 [build-dependencies]

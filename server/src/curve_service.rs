@@ -1,6 +1,7 @@
 use crate::channels::Channel;
-use proto::{server::CurveService, Curve, CurveRequest};
-use tokio::sync::mpsc;
+use futures::channel::mpsc::{self, UnboundedReceiver};
+use proto::curve_service_server::CurveService;
+use proto::{Curve, CurveRequest};
 use tonic::{Request, Response, Status};
 
 pub struct CurveServiceImpl {
@@ -21,13 +22,13 @@ impl CurveServiceImpl {
 
 #[tonic::async_trait]
 impl CurveService for CurveServiceImpl {
-    type GetCurveStream = mpsc::UnboundedReceiver<Result<Curve, Status>>;
+    type GetCurveStream = UnboundedReceiver<Result<Curve, Status>>;
     async fn get_curve(
         &self,
         request: Request<CurveRequest>,
-    ) -> Result<Response<Self::GetCurveStream>, Status> {
+    ) -> Result<Response<<Self as CurveService>::GetCurveStream>, Status> {
         println!("Got a request: {:?}", request);
-        let (tx, rx) = mpsc::unbounded_channel();
+        let (tx, rx) = mpsc::unbounded();
         self.curve_channels[request.get_ref().index as usize]
             .lock()
             .await

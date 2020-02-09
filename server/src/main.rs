@@ -1,7 +1,7 @@
 mod channels;
 mod curve_service;
 use curve_service::CurveServiceImpl;
-use proto::server::CurveServiceServer;
+use proto::curve_service_server::CurveServiceServer;
 use tonic::transport::Server;
 
 #[tokio::main]

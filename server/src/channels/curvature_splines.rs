@@ -15,7 +15,7 @@ pub struct CurvatureSpline {
 
 impl CurvatureSplines {
     #[rustfmt::skip]
-    pub fn to_curve(&self, guard: pprof::ProfilerGuard) -> Result<Vec<Point>, &'static str> {
+    pub fn to_curve(&self) -> Result<Vec<Point>, &'static str> {
         let mut ti: Matrix4<f64> = One::one();
         let mut points = Vec::with_capacity(self.splines.len());
         for spline in self.splines.iter() {
@@ -57,50 +57,46 @@ impl CurvatureSplines {
                 0.0, 0.0, 0.0, 1.0,
 
             ) * ti;
-            if let Ok(report) = guard.report().build() {
-                let file = std::fs::File::create("flamegraph.svg").unwrap();
-                report.flamegraph(file).unwrap();
-            };
         }
         Ok(points)
     }
 }
 
-
 #[cfg(test)]
 mod tests {
+    use super::{CurvatureSpline, CurvatureSplines};
     use proto::Point;
-    use super::{CurvatureSplines, CurvatureSpline};
 
     #[test]
     fn to_curve() -> Result<(), &'static str> {
         let points = CurvatureSplines {
             ds: 0.1,
             splines: vec![
-                CurvatureSpline {ka: 0.1, kb: 0.15},
-                CurvatureSpline {ka: 0.2, kb: 0.25},
-                CurvatureSpline {ka: 0.1, kb: 0.15},
-                CurvatureSpline {ka: 0.1, kb: 0.15},
-                CurvatureSpline {ka: 0.3, kb: 0.05},
-                CurvatureSpline {ka: 0.1, kb: 0.15},
-                CurvatureSpline {ka: 0.1, kb: 0.15},
-                CurvatureSpline {ka: 0.1, kb: 0.15},
-//                CurvatureSpline {ka: 0.1, kb: 0.15},
-//                CurvatureSpline {ka: 0.1, kb: 0.15},
-//                CurvatureSpline {ka: 0.1, kb: 0.15},
-//                CurvatureSpline {ka: 0.0, kb: 0.15},
-//                CurvatureSpline {ka: 0.1, kb: 0.15},
-//                CurvatureSpline {ka: 0.1, kb: 0.15},
-//                CurvatureSpline {ka: 0.1, kb: 0.0},
-//                CurvatureSpline {ka: 0.1, kb: 0.15},
-//                CurvatureSpline {ka: 0.1, kb: 0.15},
-//                CurvatureSpline {ka: 0.1, kb: 0.15},
-//                CurvatureSpline {ka: 0.1, kb: 0.15}
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.2, kb: 0.25 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.3, kb: 0.05 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                //                CurvatureSpline {ka: 0.1, kb: 0.15},
+                //                CurvatureSpline {ka: 0.1, kb: 0.15},
+                //                CurvatureSpline {ka: 0.1, kb: 0.15},
+                //                CurvatureSpline {ka: 0.0, kb: 0.15},
+                //                CurvatureSpline {ka: 0.1, kb: 0.15},
+                //                CurvatureSpline {ka: 0.1, kb: 0.15},
+                //                CurvatureSpline {ka: 0.1, kb: 0.0},
+                //                CurvatureSpline {ka: 0.1, kb: 0.15},
+                //                CurvatureSpline {ka: 0.1, kb: 0.15},
+                //                CurvatureSpline {ka: 0.1, kb: 0.15},
+                //                CurvatureSpline {ka: 0.1, kb: 0.15}
             ],
-        }.to_curve(pprof::ProfilerGuard::new(100).unwrap())?;
-        for Point{x, y, z} in points {
-            println!("x: {}, y: {}, z: {}",x, y, z);
-        };
+        }
+        .to_curve(pprof::ProfilerGuard::new(100).unwrap())?;
+        for Point { x, y, z } in points {
+            println!("x: {}, y: {}, z: {}", x, y, z);
+        }
         Ok(())
     }
 }
