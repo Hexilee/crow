@@ -1,6 +1,7 @@
 use nalgebra::{Matrix3, Matrix4, Vector4};
 use num::{Float, One};
 use proto::Point;
+use std::time::Instant;
 
 pub struct CurvatureSplines {
     // delta s
@@ -18,8 +19,9 @@ impl CurvatureSplines {
     pub fn to_curve(&self) -> Result<Vec<Point>, &'static str> {
         let mut ti: Matrix4<f64> = One::one();
         let mut points = Vec::with_capacity(self.splines.len());
+        let time = Instant::now();
         for spline in self.splines.iter() {
-            let k = (spline.ka.powi(2) + spline.ka.powi(2)).sqrt();
+            let k = (spline.ka.powi(2) + spline.kb.powi(2)).sqrt();
             let theta = k * self.ds;
             let cos_alpha = spline.ka / k;
             let sin_alpha = spline.kb / k;
@@ -55,9 +57,9 @@ impl CurvatureSplines {
                 ri_plus.row(1)[0], ri_plus.row(1)[1], ri_plus.row(1)[2], db,
                 ri_plus.row(2)[0], ri_plus.row(2)[1], ri_plus.row(2)[2], dc,
                 0.0, 0.0, 0.0, 1.0,
-
             ) * ti;
         }
+        println!("cost {}ms", time.elapsed().as_millis());
         Ok(points)
     }
 }
@@ -80,20 +82,20 @@ mod tests {
                 CurvatureSpline { ka: 0.1, kb: 0.15 },
                 CurvatureSpline { ka: 0.1, kb: 0.15 },
                 CurvatureSpline { ka: 0.1, kb: 0.15 },
-                //                CurvatureSpline {ka: 0.1, kb: 0.15},
-                //                CurvatureSpline {ka: 0.1, kb: 0.15},
-                //                CurvatureSpline {ka: 0.1, kb: 0.15},
-                //                CurvatureSpline {ka: 0.0, kb: 0.15},
-                //                CurvatureSpline {ka: 0.1, kb: 0.15},
-                //                CurvatureSpline {ka: 0.1, kb: 0.15},
-                //                CurvatureSpline {ka: 0.1, kb: 0.0},
-                //                CurvatureSpline {ka: 0.1, kb: 0.15},
-                //                CurvatureSpline {ka: 0.1, kb: 0.15},
-                //                CurvatureSpline {ka: 0.1, kb: 0.15},
-                //                CurvatureSpline {ka: 0.1, kb: 0.15}
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.0, kb: 0.15 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.1, kb: 0.0 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 },
+                CurvatureSpline { ka: 0.1, kb: 0.15 }
             ],
         }
-        .to_curve(pprof::ProfilerGuard::new(100).unwrap())?;
+            .to_curve()?;
         for Point { x, y, z } in points {
             println!("x: {}, y: {}, z: {}", x, y, z);
         }
