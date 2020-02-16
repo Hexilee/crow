@@ -3524,8 +3524,8 @@ grapheme-breaker@^0.3.2:
 
 grpc-web@^1.0.7:
   version "1.0.7"
-  resolved "https://registry.yarnpkg.com/grpc-web/-/grpc-web-1.0.7.tgz#9e4fbcf63d3734515332ab59e42baa7d0d290015"
-  integrity sha512-Fkbz1nyvvt6GC6ODcxh9Fen6LLB3OTCgGHzHwM2Eni44SUhzqPz1UQgFp9sfBEfInOhx3yBdwo9ZLjZAmJ+TtA==
+  resolved "https://registry.npm.taobao.org/grpc-web/download/grpc-web-1.0.7.tgz#9e4fbcf63d3734515332ab59e42baa7d0d290015"
+  integrity sha1-nk+89j03NFFTMqtZ5CuqfQ0pABU=
 
 har-schema@^2.0.0:
   version "2.0.0"
@@ -6782,12 +6782,29 @@ terser@^4.3.9:
     source-map "~0.6.1"
     source-map-support "~0.5.12"
 
+three-dragcontrols@^0.88.2:
+  version "0.88.2"
+  resolved "https://registry.npm.taobao.org/three-dragcontrols/download/three-dragcontrols-0.88.2.tgz#e4b292657b8afffd00e573401da777dfd5dd5cd5"
+  integrity sha1-5LKSZXuK//0A5XNAHad339XdXNU=
+
 three-orbitcontrols-ts@^0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/three-orbitcontrols-ts/-/three-orbitcontrols-ts-0.1.2.tgz#2040955904022ae19c2e9c52ffdff43168658abd"
   integrity sha1-IECVWQQCKuGcLpxS/9/0MWhlir0=
   dependencies:
     three "^0.83.0"
+
+three-transformcontrols@^0.78.1:
+  version "0.78.1"
+  resolved "https://registry.npm.taobao.org/three-transformcontrols/download/three-transformcontrols-0.78.1.tgz#bcff06f4fd3239743d93cfc3c1f0d49ece70b5f4"
+  integrity sha1-vP8G9P0yOXQ9k8/DwfDUns5wtfQ=
+  dependencies:
+    three ">=0.78.0"
+
+three@>=0.78.0:
+  version "0.113.2"
+  resolved "https://registry.npm.taobao.org/three/download/three-0.113.2.tgz#04791d491fe4359330f9dbe7b767db18bfb35d67"
+  integrity sha1-BHkdSR/kNZMw+dvnt2fbGL+zXWc=
 
 three@^0.111.0:
   version "0.111.0"

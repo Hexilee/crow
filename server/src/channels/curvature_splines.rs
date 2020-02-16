@@ -3,15 +3,34 @@ use num::{Float, One};
 use proto::Point;
 use std::time::Instant;
 
+/// (distance, ka, kb)
+pub trait PointVector {
+    fn interpolate(&self, ds: f64) -> CurvatureSplines;
+}
+
 pub struct CurvatureSplines {
     // delta s
     ds: f64,
-    splines: Vec<CurvatureSpline>,
+    splines: Vec<(f64, f64)>, // (ka, kb)
 }
 
-pub struct CurvatureSpline {
-    ka: f64,
-    kb: f64,
+impl PointVector for Vec<(f64, f64, f64)> {
+    fn interpolate(&self, ds: f64) -> CurvatureSplines {
+        let mut current = (0., 0., 0.);
+        let mut splines = Vec::new();
+        for (distance, ka, kb) in self.iter() {
+            let delta = ((distance - current.0) / ds) as u64;
+            let delta_a = (ka - current.1) / delta as f64;
+            let delta_b = (kb - current.2) / delta as f64;
+            current.0 = *distance;
+            for _ in 0..delta {
+                current.1 += delta_a;
+                current.2 += delta_b;
+                splines.push((current.1, current.2));
+            }
+        }
+        CurvatureSplines { ds, splines }
+    }
 }
 
 impl CurvatureSplines {
@@ -20,17 +39,17 @@ impl CurvatureSplines {
         let mut ti: Matrix4<f64> = One::one();
         let mut points = Vec::with_capacity(self.splines.len());
         let time = Instant::now();
-        for spline in self.splines.iter() {
-            let k = (spline.ka.powi(2) + spline.kb.powi(2)).sqrt();
+        for (ka, kb) in self.splines.iter() {
+            let k = (ka.powi(2) + kb.powi(2)).sqrt();
             let theta = k * self.ds;
-            let cos_alpha = spline.ka / k;
-            let sin_alpha = spline.kb / k;
+            let cos_alpha = ka / k;
+            let sin_alpha = kb / k;
             let cos_theta = theta.cos();
             let sin_theta = theta.sin();
-            let da = cos_alpha * (1.0 - cos_theta) / k;
-            let db = sin_alpha * (1.0 - cos_theta) / k;
+            let da = cos_alpha * (1. - cos_theta) / k;
+            let db = sin_alpha * (1. - cos_theta) / k;
             let dc = sin_theta / k;
-            let point_matrix = ti.pseudo_inverse(0.01)? * Vector4::new(da, db, dc, 1.0);
+            let point_matrix = ti.pseudo_inverse(0.1)? * Vector4::new(da, db, dc, 1.);
             let point_vector = point_matrix.column(0);
             points.push(Point {
                 x: point_vector[0] / point_vector[3],
@@ -39,24 +58,24 @@ impl CurvatureSplines {
             });
 
             let ri_plus = Matrix3::new(
-                cos_alpha, -sin_alpha, 0.0,
-                sin_alpha, cos_alpha, 0.0,
-                0.0, 0.0, 1.0,
+                cos_alpha, -sin_alpha, 0.,
+                sin_alpha, cos_alpha, 0.,
+                0., 0., 1.,
             ) * Matrix3::new(
-                cos_theta, 0.0, sin_theta,
-                0.0, 1.0, 0.0,
-                -sin_theta, 0.0, cos_theta,
+                cos_theta, 0., sin_theta,
+                0., 1., 0.,
+                -sin_theta, 0., cos_theta,
             ) * Matrix3::new(
-                cos_alpha, sin_alpha, 0.0,
-                -sin_alpha, cos_alpha, 0.0,
-                0.0, 0.0, 1.0,
+                cos_alpha, sin_alpha, 0.,
+                -sin_alpha, cos_alpha, 0.,
+                0., 0., 1.,
             );
 
             ti = Matrix4::new(
                 ri_plus.row(0)[0], ri_plus.row(0)[1], ri_plus.row(0)[2], da,
                 ri_plus.row(1)[0], ri_plus.row(1)[1], ri_plus.row(1)[2], db,
                 ri_plus.row(2)[0], ri_plus.row(2)[1], ri_plus.row(2)[2], dc,
-                0.0, 0.0, 0.0, 1.0,
+                0., 0., 0., 1.,
             ) * ti;
         }
         println!("cost {}ms", time.elapsed().as_millis());
@@ -66,38 +85,23 @@ impl CurvatureSplines {
 
 #[cfg(test)]
 mod tests {
-    use super::{CurvatureSpline, CurvatureSplines};
+    use super::PointVector;
     use proto::Point;
 
     #[test]
     fn to_curve() -> Result<(), &'static str> {
-        let points = CurvatureSplines {
-            ds: 0.1,
-            splines: vec![
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.2, kb: 0.25 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.3, kb: 0.05 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.0, kb: 0.15 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.1, kb: 0.0 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 },
-                CurvatureSpline { ka: 0.1, kb: 0.15 }
-            ],
-        }
-            .to_curve()?;
+        let points = vec![
+            (1., 1., 1.),
+            (2., 1., 0.),
+            (3.5, -0.2, 0.5),
+            (5., -0.5, -1.),
+            (7., 1., 0.),
+            (10., 0., -1.),
+        ]
+        .interpolate(0.1)
+        .to_curve()?;
         for Point { x, y, z } in points {
-            println!("x: {}, y: {}, z: {}", x, y, z);
+            println!("new THREE.Vector3({}, {}, {});", x, y, z);
         }
         Ok(())
     }
