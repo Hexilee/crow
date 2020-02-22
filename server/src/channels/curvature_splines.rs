@@ -27,6 +27,7 @@ impl PointVector for Vec<(f64, f64, f64)> {
                 current.1 += delta_a;
                 current.2 += delta_b;
                 splines.push((current.1, current.2));
+                println!("ka: {}, ,kb: {}", current.1, current.2);
             }
         }
         CurvatureSplines { ds, splines }
@@ -49,7 +50,7 @@ impl CurvatureSplines {
             let da = cos_alpha * (1. - cos_theta) / k;
             let db = sin_alpha * (1. - cos_theta) / k;
             let dc = sin_theta / k;
-            let point_matrix = ti.pseudo_inverse(0.1)? * Vector4::new(da, db, dc, 1.);
+            let point_matrix = ti.pseudo_inverse(0.000000001)? * Vector4::new(da, db, dc, 1.);
             let point_vector = point_matrix.column(0);
             points.push(Point {
                 x: point_vector[0] / point_vector[3],
@@ -88,20 +89,38 @@ mod tests {
     use super::PointVector;
     use proto::Point;
 
+    // #[test]
+    // fn to_curve() -> Result<(), &'static str> {
+    //     let points = vec![
+    //         (1., 1., 1.),
+    //         (2., 1., 0.),
+    //         (3.5, -0.2, 0.5),
+    //         (5., -0.5, -1.),
+    //         (7., 1., 0.),
+    //         (10., 0., -1.),
+    //     ]
+    //     .interpolate(0.1)
+    //     .to_curve()?;
+    //     for Point { x, y, z } in points {
+    //         println!("new THREE.Vector3({}, {}, {});", x, y, z);
+    //     }
+    //     Ok(())
+    // }
+
     #[test]
-    fn to_curve() -> Result<(), &'static str> {
+    fn to_curve_2() -> Result<(), &'static str> {
         let points = vec![
-            (1., 1., 1.),
-            (2., 1., 0.),
-            (3.5, -0.2, 0.5),
-            (5., -0.5, -1.),
-            (7., 1., 0.),
-            (10., 0., -1.),
+            (4.66, 0.21, 0.),
+            (9.36, 0.27, 0.),
+            (14.82, 0.086, 0.),
+            (19.72, -0.0093, 0.),
+            (24.74, -0.091, -0.),
+            (29.95, -0.079, -0.),
         ]
-        .interpolate(0.1)
+        .interpolate(0.2)
         .to_curve()?;
         for Point { x, y, z } in points {
-            println!("new THREE.Vector3({}, {}, {});", x, y, z);
+            println!("new THREE.Vector3({}, {}, {}),", x, y, z);
         }
         Ok(())
     }
