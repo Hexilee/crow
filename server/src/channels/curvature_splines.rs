@@ -27,7 +27,6 @@ impl PointVector for Vec<(f64, f64, f64)> {
                 current.1 += delta_a;
                 current.2 += delta_b;
                 splines.push((current.1, current.2));
-                println!("ka: {}, ,kb: {}", current.1, current.2);
             }
         }
         CurvatureSplines { ds, splines }
@@ -114,8 +113,8 @@ mod tests {
             (9.36, 0.27, 0.),
             (14.82, 0.086, 0.),
             (19.72, -0.0093, 0.),
-            (24.74, -0.091, -0.),
-            (29.95, -0.079, -0.),
+            (24.74, -0.091, 0.),
+            (29.95, -0.079, 0.),
         ]
         .interpolate(0.2)
         .to_curve()?;
