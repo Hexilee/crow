@@ -1,8 +1,8 @@
 use crate::channels::Channel;
 use futures::channel::mpsc::{self, UnboundedReceiver};
 use proto::curve_service_server::CurveService;
-use proto::{Curve, CurveRequest};
-use tonic::{Request, Response, Status};
+use proto::{Curve, CurveRequest, RawData, RegisterReply};
+use tonic::{Request, Response, Status, Streaming};
 
 pub struct CurveServiceImpl {
     curve_channels: Vec<Channel>,
@@ -34,5 +34,12 @@ impl CurveService for CurveServiceImpl {
             .await
             .push(tx);
         Ok(Response::new(rx))
+    }
+
+    async fn register(
+        &self,
+        _request: Request<Streaming<RawData>>,
+    ) -> Result<Response<RegisterReply>, Status> {
+        unimplemented!()
     }
 }
