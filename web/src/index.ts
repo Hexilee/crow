@@ -1,11 +1,14 @@
 import * as THREE from 'three'
 import Stats from 'stats.js'
-import { OrbitControls } from 'three-orbitcontrols-ts'
-// import { TransformControls } from './types/three-transformcontrols';
+import { OrbitControls, MapControls } from 'three/examples/jsm/controls/OrbitControls'
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 
 const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.25, 16)
 const scene = new THREE.Scene()
 const renderer = new THREE.WebGLRenderer()
+const render = () => {
+    renderer.render(scene, camera)
+}
 const stats = new Stats()
 // Geometry
 const material = new THREE.MeshPhongMaterial({
@@ -167,58 +170,29 @@ const curve = new THREE.CatmullRomCurve3([
 const geometry = new THREE.TubeGeometry(
     curve,  //path
     64,
-    0.1
-);
+    0.1,
+)
 
 const object = new THREE.Mesh(geometry, material)
 object.castShadow = true
-init()
-const startTime = Date.now()
-const orbitControls = new OrbitControls(camera, renderer.domElement)
-orbitControls.target.set(0, 1, 0)
-orbitControls.enableDamping = true
+const controls = new MapControls(camera, renderer.domElement)
+controls.update()
+controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
+controls.dampingFactor = 0.05
+controls.screenSpacePanning = false
+controls.maxPolarAngle = Math.PI / 8
 
 // let hiding = 0;
-// const transformControl = new TransformControls(camera, renderer.domElement);
-// transformControl.addEventListener('change', () => { renderer.render(scene, camera) });
-// transformControl.addEventListener('dragging-changed', function (event) {
-//     orbitControls.enabled = !event.value;
-// });
-// scene.add(transformControl);
+const transformControl = new TransformControls(camera, renderer.domElement)
+transformControl.addEventListener('change', render)
+transformControl.addEventListener('dragging-changed', (event) => {
+    controls.enabled = !event.value
+})
+transformControl.attach(object)
+transformControl.setMode('translate')
+scene.add(transformControl)
 
-// // Hiding transform situation is a little in a mess :()
-// transformControl.addEventListener('change', function () {
-//     cancelHideTransform();
-// });
-
-// transformControl.addEventListener('mouseDown', function () {
-//     cancelHideTransform();
-
-// })
-
-// transformControl.addEventListener('mouseUp', function () {
-//     delayHideTransform();
-// });
-
-
-// const delayHideTransform = () => {
-//     cancelHideTransform();
-//     hideTransform();
-// }
-
-// function hideTransform() {
-//     hiding = setTimeout(() => {
-//         transformControl.detach(transformControl.object)
-//     }, 2500)
-// }
-
-// const cancelHideTransform = () => {
-//     if (hiding) clearTimeout(hiding);
-// }
-
-animate()
-
-function init() {
+const init = () => {
     camera.position.set(0, 1.3, 3)
     // Lights
     scene.add(new THREE.AmbientLight(0x505050))
@@ -244,26 +218,9 @@ function init() {
     dirLight.shadow.mapSize.width = 1024
     dirLight.shadow.mapSize.height = 1024
     scene.add(dirLight)
-    // ***** Clipping planes: *****
     scene.add(object)
-    // const planeGeometry = new THREE.PlaneBufferGeometry(2000, 2000);
-    // planeGeometry.rotateX(- Math.PI / 2);
-    // const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.2 });
 
-    // const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-    // plane.position.y = - 2;
-    // plane.receiveShadow = true;
-    // scene.add(plane);
-    // let ground = new THREE.Mesh(
-    //     new THREE.PlaneBufferGeometry(9, 9, 1, 1),
-    //     new THREE.MeshPhongMaterial({ color: 0xa0adaf, shininess: 150 }),
-    // )
-    // ground.rotation.x = -Math.PI / 2 // rotates X/Y to X/Z
-    // ground.receiveShadow = true
-    // scene.add(ground)
-    // Stats
     document.body.appendChild(stats.dom)
-    // Renderer
     renderer.shadowMap.enabled = true
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(window.innerWidth, window.innerHeight)
@@ -271,24 +228,19 @@ function init() {
     document.body.appendChild(renderer.domElement)
 }
 
-function onWindowResize() {
+const onWindowResize = () => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
+    render()
 }
 
-function animate() {
-    let currentTime = Date.now()
-    let time = (currentTime - startTime) / 1000
-    // Controls
+init()
+render()
+const animate = () => {
     requestAnimationFrame(animate)
-    orbitControls.update()
-    object.position.y = 0.8
-    object.rotation.x = time * 0.5
-    object.rotation.y = time * 0.2
-    object.scale.setScalar(Math.cos(time) * 0.125 + 0.875)
-
     stats.begin()
     renderer.render(scene, camera)
     stats.end()
 }
+animate()

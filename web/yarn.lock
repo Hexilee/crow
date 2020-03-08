@@ -6794,18 +6794,6 @@ three-orbitcontrols-ts@^0.1.2:
   dependencies:
     three "^0.83.0"
 
-three-transformcontrols@^0.78.1:
-  version "0.78.1"
-  resolved "https://registry.npm.taobao.org/three-transformcontrols/download/three-transformcontrols-0.78.1.tgz#bcff06f4fd3239743d93cfc3c1f0d49ece70b5f4"
-  integrity sha1-vP8G9P0yOXQ9k8/DwfDUns5wtfQ=
-  dependencies:
-    three ">=0.78.0"
-
-three@>=0.78.0:
-  version "0.113.2"
-  resolved "https://registry.npm.taobao.org/three/download/three-0.113.2.tgz#04791d491fe4359330f9dbe7b767db18bfb35d67"
-  integrity sha1-BHkdSR/kNZMw+dvnt2fbGL+zXWc=
-
 three@^0.111.0:
   version "0.111.0"
   resolved "https://registry.yarnpkg.com/three/-/three-0.111.0.tgz#9cedb73e79b7f6bf2440cb67a273f883faa923b6"
