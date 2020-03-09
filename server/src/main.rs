@@ -47,8 +47,8 @@ async fn handle_ws_client(ctx: SyncContext<SyncChannel>, stream: SocketStream) {
 }
 
 async fn handle_message(
-    ctx: &SyncContext<SyncChannel>,
-    index: usize,
+    _ctx: &SyncContext<SyncChannel>,
+    _index: usize,
     mut receiver: SplitStream<SocketStream>,
 ) -> Result<(), WsError> {
     while let Some(message) = receiver.next().await {
@@ -58,9 +58,12 @@ async fn handle_message(
                 debug!("websocket connection close: {:?}", frame);
                 break;
             }
-            Message::Ping(data) => ctx.send(index, Message::Pong(data)).await,
-            Message::Pong(data) => warn!("ignored pong: {:?}", data),
-            _ => warn!("ignored a message"),
+            Message::Ping(ref data) => info!("client ping: {}", String::from_utf8_lossy(data)),
+            Message::Pong(ref data) => warn!("ignored pong: {}", String::from_utf8_lossy(data)),
+            Message::Text(ref data) => info!("receive a message: {}", data),
+            Message::Binary(ref data) => {
+                info!("receive a message: {}", String::from_utf8_lossy(data))
+            }
         }
     }
     Ok(())

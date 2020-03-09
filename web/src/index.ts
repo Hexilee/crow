@@ -20,6 +20,11 @@ const material = new THREE.MeshPhongMaterial({
 })
 
 const object = new THREE.Mesh()
+object.material = new THREE.MeshPhongMaterial({
+    color: 0x80ee10,
+    shininess: 100,
+    side: THREE.DoubleSide,
+})
 object.castShadow = true
 
 interface Point {
@@ -34,6 +39,9 @@ interface Curve {
 }
 
 const socket = new WebSocket('ws://localhost:8000')
+socket.addEventListener('open', event => {
+    socket.send("Hello, Server")
+})
 socket.addEventListener('message', event => {
     let data = JSON.parse(event.data) as Curve
     const curve = new THREE.CatmullRomCurve3(data.points.map(
@@ -42,8 +50,17 @@ socket.addEventListener('message', event => {
     object.geometry = new THREE.TubeGeometry(
         curve,  //path
         64,
-        0.1,
+        0.4,
     )
+    console.log('set geometry')
+})
+
+socket.addEventListener('error', event => {
+    console.log('receive error')
+})
+
+socket.addEventListener('close', event => {
+    console.log('socket close')
 })
 
 
@@ -71,7 +88,7 @@ const init = () => {
     let spotLight = new THREE.SpotLight(0xffffff)
     spotLight.angle = Math.PI / 5
     spotLight.penumbra = 0.2
-    spotLight.position.set(2, 3, 3)
+    spotLight.position.set(10, 15, 15)
     spotLight.castShadow = true
     spotLight.shadow.camera.near = 3
     spotLight.shadow.camera.far = 10
@@ -79,7 +96,7 @@ const init = () => {
     spotLight.shadow.mapSize.height = 1024
     scene.add(spotLight)
     let dirLight = new THREE.DirectionalLight(0x55505a, 1)
-    dirLight.position.set(0, 3, 0)
+    dirLight.position.set(0, 15, 0)
     dirLight.castShadow = true
     dirLight.shadow.camera.near = 1
     dirLight.shadow.camera.far = 10

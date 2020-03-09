@@ -1454,6 +1454,7 @@ dependencies = [
  "num",
  "pprof",
  "pretty_env_logger",
+ "rand",
  "roa",
  "serde",
  "serde_json",
