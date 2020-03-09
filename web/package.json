@@ -25,8 +25,9 @@
     "typescript": "^3.7.2"
   },
   "scripts": {
-    "install": "yarn protoc",
-    "protoc": "protoc -I=src/gen/grpc ../proto/crow.proto --grpc-web_out=import_style=typescript,mode=grpcweb:src/gen/grpc/ --proto_path=../proto/",
+    "install": "yarn gen-js & yarn gen-ts",
+    "gen-ts": "protoc -I=src/gen/grpc ../proto/crow.proto --grpc-web_out=import_style=typescript,mode=grpcweb:src/gen/grpc/ --proto_path=../proto/",
+    "gen-js": "protoc -I=src/gen/grpc ../proto/crow.proto --js_out=import_style=commonjs:src/gen/grpc/ --proto_path=../proto/",
     "dev": "parcel src/index.html",
     "build": "parcel build src/index.html",
     "serve": "hs dist"
