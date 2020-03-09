@@ -14,8 +14,7 @@
     "grpc-web": "^1.0.7",
     "stats.js": "^0.17.0",
     "three": "^0.111.0",
-    "three-dragcontrols": "^0.88.2",
-    "three-orbitcontrols-ts": "^0.1.2"
+    "three-dragcontrols": "^0.88.2"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

@@ -14,7 +14,7 @@ tokio = { version = "0.2", features = ["full"] }
 futures = "0.3"
 proto = { path = "../proto" }
 aljabar = "0.4"
-nalgebra = "0.19"
+nalgebra = "0.20"
 num = "0.2"
 futures-timer = "3.0.1"
 

@@ -1,5 +1,5 @@
 use nalgebra::{Matrix3, Matrix4, Vector4};
-use num::{Float, One};
+use num::One;
 use proto::Point;
 use std::time::Instant;
 
@@ -39,7 +39,7 @@ impl CurvatureSplines {
     pub fn to_curve(&self) -> Result<Vec<Point>, &'static str> {
         let mut ti: Matrix4<f64> = One::one(); // define transformation matrix
         let mut points = Vec::with_capacity(self.splines.len()); // define points vector and reserve capacity
-        let time = Instant::now(); // start time
+        // let time = Instant::now(); // start time
         for (ka, kb) in self.splines.iter() { // iterate curvature splines
             let k = (ka.powi(2) + kb.powi(2)).sqrt(); // composite curvature
             let theta = k * self.ds;
@@ -56,11 +56,16 @@ impl CurvatureSplines {
             let point_matrix = ti.pseudo_inverse(0.000000001)? * Vector4::new(da, db, dc, 1.);
             let point_vector = point_matrix.column(0);
 
+            let x = point_vector[0] / point_vector[3];
+            let y = point_vector[1] / point_vector[3];
+            let z = point_vector[2] / point_vector[3];
+            // println!("(da: {}, db: {}, dc: {}),", da, db, dc);
+            // println!("({}, {}, {}),", x, y, z);
             // push absolute coordinate of current point
             points.push(Point {
-                x: point_vector[0] / point_vector[3],
-                y: point_vector[1] / point_vector[3],
-                z: point_vector[2] / point_vector[3],
+                x,
+                y,
+                z,
             });
 
             let ri_plus = Matrix3::new(
@@ -85,7 +90,7 @@ impl CurvatureSplines {
                 0., 0., 0., 1.,
             ) * ti;
         }
-        println!("cost {}ms", time.elapsed().as_millis());
+        // println!("cost {}ms", time.elapsed().as_millis());
         Ok(points)
     }
 }
@@ -115,7 +120,7 @@ mod tests {
 
     #[test]
     fn to_curve_2() -> Result<(), &'static str> {
-        let points = vec![
+        vec![
             (4.66, 0.21, 0.),
             (9.36, 0.27, 0.),
             (14.82, 0.086, 0.),
@@ -123,11 +128,8 @@ mod tests {
             (24.74, -0.091, 0.),
             (29.95, -0.079, 0.),
         ]
-        .interpolate(0.2)
-        .to_curve()?;
-        for Point { x, y, z } in points {
-            println!("({}, {}, {}),", x, y, z);
-        }
+            .interpolate(0.2)
+            .to_curve()?;
         Ok(())
     }
 }
