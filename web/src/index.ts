@@ -3,9 +3,6 @@ import Stats from 'stats.js'
 import { OrbitControls, MapControls } from 'three/examples/jsm/controls/OrbitControls'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 import { DelegateCurve } from './curve'
-import { CurveServiceClient } from './gen/grpc/CrowServiceClientPb'
-import { Curve, CurveRequest } from './gen/grpc/crow_pb'
-import { ClientReadableStream, Error, Status } from 'grpc-web'
 import { Vector3 } from 'three'
 
 const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.25, 16)
@@ -22,25 +19,34 @@ const material = new THREE.MeshPhongMaterial({
     side: THREE.DoubleSide,
 })
 
-let curve = new DelegateCurve(new THREE.CatmullRomCurve3([]))
-const curveService = new CurveServiceClient('http://localhost:8081', null, null)
-const req = new CurveRequest()
-req.setIndex(0)
-let stream = curveService.getCurve(req)
-stream.on('data', function (data) {
-    curve.setCurve(new THREE.CatmullRomCurve3(data.getPointsList().map(
-        (point, _index, _array) => (new Vector3(point.getX(), point.getY(), point.getZ())
-    ))))
+const object = new THREE.Mesh()
+object.castShadow = true
+
+interface Point {
+    readonly x: number,
+    readonly y: number,
+    readonly z: number,
+}
+
+interface Curve {
+    readonly timestamp: number,
+    readonly points: Array<Point>,
+}
+
+const socket = new WebSocket('ws://localhost:8000')
+socket.addEventListener('message', event => {
+    let data = JSON.parse(event.data) as Curve
+    const curve = new THREE.CatmullRomCurve3(data.points.map(
+        ({x, y, z}) => (new Vector3(x, y, z)),
+    ))
+    object.geometry = new THREE.TubeGeometry(
+        curve,  //path
+        64,
+        0.1,
+    )
 })
 
-const geometry = new THREE.TubeGeometry(
-    curve,  //path
-    64,
-    0.1,
-)
 
-const object = new THREE.Mesh(geometry, material)
-object.castShadow = true
 const controls = new MapControls(camera, renderer.domElement)
 controls.update()
 controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled

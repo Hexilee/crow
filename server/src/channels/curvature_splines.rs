@@ -1,6 +1,6 @@
 use nalgebra::{Matrix3, Matrix4, Vector4};
 use num::One;
-use proto::Point;
+use crate::curve::Point;
 use std::time::Instant;
 
 /// (distance, ka, kb)
@@ -98,7 +98,6 @@ impl CurvatureSplines {
 #[cfg(test)]
 mod tests {
     use super::PointVector;
-    use proto::Point;
 
     // #[test]
     // fn to_curve() -> Result<(), &'static str> {
