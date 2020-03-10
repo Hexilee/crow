@@ -2,7 +2,6 @@ import * as THREE from 'three'
 import Stats from 'stats.js'
 import { OrbitControls, MapControls } from 'three/examples/jsm/controls/OrbitControls'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
-import { DelegateCurve } from './curve'
 import { Vector3 } from 'three'
 
 const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.25, 16)
@@ -38,21 +37,18 @@ interface Curve {
     readonly points: Array<Point>,
 }
 
+let points: Vector3[] = []
+
 const socket = new WebSocket('ws://localhost:8000')
 socket.addEventListener('open', event => {
     socket.send("Hello, Server")
 })
 socket.addEventListener('message', event => {
     let data = JSON.parse(event.data) as Curve
-    const curve = new THREE.CatmullRomCurve3(data.points.map(
+    points = data.points.map(
         ({x, y, z}) => (new Vector3(x, y, z)),
-    ))
-    object.geometry = new THREE.TubeGeometry(
-        curve,  //path
-        64,
-        0.4,
     )
-    console.log('set geometry')
+    console.log('set points')
 })
 
 socket.addEventListener('error', event => {
@@ -129,6 +125,12 @@ render()
 const animate = () => {
     requestAnimationFrame(animate)
     stats.begin()
+    const curve = new THREE.CatmullRomCurve3(points)
+    object.geometry = new THREE.TubeGeometry(
+        curve,  //path
+        64,
+        0.4,
+    )
     renderer.render(scene, camera)
     stats.end()
 }
