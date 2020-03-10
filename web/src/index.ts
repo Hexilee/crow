@@ -18,12 +18,8 @@ const material = new THREE.MeshPhongMaterial({
     side: THREE.DoubleSide,
 })
 
-const object = new THREE.Mesh()
-object.material = new THREE.MeshPhongMaterial({
-    color: 0x80ee10,
-    shininess: 100,
-    side: THREE.DoubleSide,
-})
+const bufGeometry = new THREE.BufferGeometry();
+const object = new THREE.Mesh(bufGeometry, material)
 object.castShadow = true
 
 interface Point {
@@ -37,17 +33,17 @@ interface Curve {
     readonly points: Array<Point>,
 }
 
-let points: Vector3[] = []
+let curve: THREE.Curve<Vector3> | null = null
 
 const socket = new WebSocket('ws://localhost:8000')
 socket.addEventListener('open', event => {
-    socket.send("Hello, Server")
+    socket.send('Hello, Server')
 })
 socket.addEventListener('message', event => {
     let data = JSON.parse(event.data) as Curve
-    points = data.points.map(
+    curve = new THREE.CatmullRomCurve3(data.points.map(
         ({x, y, z}) => (new Vector3(x, y, z)),
-    )
+    ))
     console.log('set points')
 })
 
@@ -125,12 +121,15 @@ render()
 const animate = () => {
     requestAnimationFrame(animate)
     stats.begin()
-    const curve = new THREE.CatmullRomCurve3(points)
-    object.geometry = new THREE.TubeGeometry(
-        curve,  //path
-        64,
-        0.4,
-    )
+    if (curve !== null) {
+        let geometry = new THREE.TubeGeometry(
+            curve,
+            64,
+            0.2,
+        )
+        bufGeometry.fromGeometry(geometry)
+        geometry.dispose()
+    }
     renderer.render(scene, camera)
     stats.end()
 }
