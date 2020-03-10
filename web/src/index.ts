@@ -4,7 +4,7 @@ import { OrbitControls, MapControls } from 'three/examples/jsm/controls/OrbitCon
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 import { Vector3 } from 'three'
 
-const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.25, 16)
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight)
 const scene = new THREE.Scene()
 const renderer = new THREE.WebGLRenderer()
 const render = () => {
@@ -18,7 +18,7 @@ const material = new THREE.MeshPhongMaterial({
     side: THREE.DoubleSide,
 })
 
-const bufGeometry = new THREE.BufferGeometry();
+const bufGeometry = new THREE.BufferGeometry()
 const object = new THREE.Mesh(bufGeometry, material)
 object.castShadow = true
 
@@ -63,7 +63,6 @@ controls.dampingFactor = 0.05
 controls.screenSpacePanning = false
 controls.maxPolarAngle = Math.PI / 8
 
-// let hiding = 0;
 const transformControl = new TransformControls(camera, renderer.domElement)
 transformControl.addEventListener('change', render)
 transformControl.addEventListener('dragging-changed', (event) => {
@@ -74,32 +73,25 @@ transformControl.setMode('translate')
 scene.add(transformControl)
 
 const init = () => {
-    camera.position.set(0, 1.3, 3)
+    camera.position.set(10, 10, 0)
     // Lights
-    scene.add(new THREE.AmbientLight(0x505050))
-    let spotLight = new THREE.SpotLight(0xffffff)
-    spotLight.angle = Math.PI / 5
-    spotLight.penumbra = 0.2
-    spotLight.position.set(10, 15, 15)
+    scene.add(new THREE.AmbientLight(0xf0f0f0))
+    let spotLight = new THREE.DirectionalLight(0x505050, 1.5)
+    spotLight.position.set(0, 1000, 0)
     spotLight.castShadow = true
     spotLight.shadow.camera.near = 3
     spotLight.shadow.camera.far = 10
     spotLight.shadow.mapSize.width = 1024
     spotLight.shadow.mapSize.height = 1024
     scene.add(spotLight)
-    let dirLight = new THREE.DirectionalLight(0x55505a, 1)
-    dirLight.position.set(0, 15, 0)
-    dirLight.castShadow = true
-    dirLight.shadow.camera.near = 1
-    dirLight.shadow.camera.far = 10
-    dirLight.shadow.camera.right = 1
-    dirLight.shadow.camera.left = -1
-    dirLight.shadow.camera.top = 1
-    dirLight.shadow.camera.bottom = -1
-    dirLight.shadow.mapSize.width = 1024
-    dirLight.shadow.mapSize.height = 1024
-    scene.add(dirLight)
     scene.add(object)
+    const planeGeometry = new THREE.PlaneBufferGeometry(2000, 2000)
+    // planeGeometry.rotateX(-Math.PI / 2)
+    const planeMaterial = new THREE.ShadowMaterial({opacity: 0.2, color: 0xf0f0f0})
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial)
+    plane.position.y = -2
+    plane.receiveShadow = true
+    scene.add(plane)
 
     document.body.appendChild(stats.dom)
     renderer.shadowMap.enabled = true
