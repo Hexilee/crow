@@ -10,5 +10,5 @@ pub struct Point {
 #[derive(Debug, Serialize)]
 pub struct Curve {
     pub timestamp: u64,
-    pub points: Vec<Point>
+    pub points: Vec<Point>,
 }

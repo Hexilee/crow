@@ -1,4 +1,4 @@
-use super::curvature_splines::PointVector;
+use super::curvature_splines::PointSlice;
 use super::SyncChannel;
 use crate::curve::Curve;
 use rand::Rng;
@@ -24,7 +24,7 @@ pub fn push_channel(channel: SyncChannel) {
                 (29.95, curvatures[5], 0.),
             ]
             .interpolate(0.2)
-            .to_curve()
+            .curvature_reconstruct()
             .unwrap();
             let timestamp = SystemTime::now()
                 .duration_since(UNIX_EPOCH)

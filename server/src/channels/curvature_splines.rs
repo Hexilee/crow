@@ -1,10 +1,10 @@
-use nalgebra::{Matrix3, Matrix4, Vector4};
-use num::One;
 use crate::curve::Point;
+use nalgebra::{Matrix3, Matrix4, Vector3, Vector4};
+use num::One;
 use std::time::Instant;
 
 /// (distance, ka, kb)
-pub trait PointVector {
+pub trait PointSlice {
     fn interpolate(&self, ds: f64) -> CurvatureSplines;
 }
 
@@ -14,12 +14,15 @@ pub struct CurvatureSplines {
     splines: Vec<(f64, f64)>, // (ka, kb)
 }
 
-impl PointVector for Vec<(f64, f64, f64)> {
+impl<T> PointSlice for T
+where
+    T: AsRef<[(f64, f64, f64)]>,
+{
     // Just do a linear interpolation
     fn interpolate(&self, ds: f64) -> CurvatureSplines {
         let mut current = (0., 0., 0.);
         let mut splines = Vec::new();
-        for (distance, ka, kb) in self.iter() {
+        for (distance, ka, kb) in self.as_ref() {
             let delta = ((distance - current.0) / ds) as u64;
             let delta_a = (ka - current.1) / delta as f64;
             let delta_b = (kb - current.2) / delta as f64;
@@ -36,10 +39,9 @@ impl PointVector for Vec<(f64, f64, f64)> {
 
 impl CurvatureSplines {
     #[rustfmt::skip]
-    pub fn to_curve(&self) -> Result<Vec<Point>, &'static str> {
+    pub fn curvature_reconstruct(&self) -> Result<Vec<Point>, &'static str> {
         let mut ti: Matrix4<f64> = One::one(); // define transformation matrix
         let mut points = Vec::with_capacity(self.splines.len()); // define points vector and reserve capacity
-        // let time = Instant::now(); // start time
         for (ka, kb) in self.splines.iter() { // iterate curvature splines
             let k = (ka.powi(2) + kb.powi(2)).sqrt(); // composite curvature
             let theta = k * self.ds;
@@ -93,42 +95,78 @@ impl CurvatureSplines {
         // println!("cost {}ms", time.elapsed().as_millis());
         Ok(points)
     }
+
+    #[rustfmt::skip]
+    pub fn frenet_reconstruct(&self) -> Result<Vec<Point>, &'static str> {
+        let mut ri: Matrix3<f64> = One::one(); // define rotation matrix
+        let mut points = Vec::with_capacity(self.splines.len()); // define points vector and reserve capacity
+        let mut alpha_last = 0.;
+        let mut ai = Vector3::new(0., 0., 0.);
+        for (ka, kb) in self.splines.iter() { // iterate curvature splines
+            let k = (ka.powi(2) + kb.powi(2)).sqrt(); // composite curvature
+            let theta = k * self.ds;
+            let alpha = (*ka / k).acos();
+            let phi = alpha - alpha_last;
+            alpha_last = alpha;
+
+            let cos_phi = phi.cos();
+            let sin_phi = phi.sin();
+            let cos_theta = theta.cos();
+            let sin_theta = theta.sin();
+
+            ri = Matrix3::new(
+                cos_phi, -sin_phi, 0.,
+                sin_phi, cos_phi, 0.,
+                0., 0., 1.,
+            ) * ri;
+
+            let dn = (1. - cos_theta) / k;
+            let db = 0.;
+            let dt = sin_theta / k;
+
+            // get generalized inverse of ri; then dot product relative coordinate
+            let ti = ri.pseudo_inverse(0.000000001)? * Vector3::new(dn, db, dt);
+            ai += ti;
+            let slice = ai.column(0);
+            // push absolute coordinate of current point
+            println!("(x, y, z): ({}, {}, {})", slice[0], slice[1], slice[2]);
+            points.push(Point {
+                x: slice[0],
+                y: slice[1],
+                z: slice[2],
+            });
+
+            ri = Matrix3::new(
+                cos_theta, 0., sin_theta,
+                0., 1., 0.,
+                -sin_theta, 0., cos_theta,
+            ) * ri;
+        }
+        Ok(points)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::PointVector;
-
-    // #[test]
-    // fn to_curve() -> Result<(), &'static str> {
-    //     let points = vec![
-    //         (1., 1., 1.),
-    //         (2., 1., 0.),
-    //         (3.5, -0.2, 0.5),
-    //         (5., -0.5, -1.),
-    //         (7., 1., 0.),
-    //         (10., 0., -1.),
-    //     ]
-    //     .interpolate(0.1)
-    //     .to_curve()?;
-    //     for Point { x, y, z } in points {
-    //         println!("new THREE.Vector3({}, {}, {});", x, y, z);
-    //     }
-    //     Ok(())
-    // }
+    use super::PointSlice;
+    const DATA: [(f64, f64, f64); 6] = [
+        (4.66, 0.21, 0.),
+        (9.36, 0.27, 0.),
+        (14.82, 0.086, 0.),
+        (19.72, -0.0093, 0.),
+        (24.74, -0.091, 0.),
+        (29.95, -0.079, 0.),
+    ];
 
     #[test]
-    fn to_curve_2() -> Result<(), &'static str> {
-        vec![
-            (4.66, 0.21, 0.),
-            (9.36, 0.27, 0.),
-            (14.82, 0.086, 0.),
-            (19.72, -0.0093, 0.),
-            (24.74, -0.091, 0.),
-            (29.95, -0.079, 0.),
-        ]
-            .interpolate(0.2)
-            .to_curve()?;
+    fn curvature_reconstruct() -> Result<(), &'static str> {
+        DATA.interpolate(0.2).curvature_reconstruct()?;
+        Ok(())
+    }
+
+    #[test]
+    fn frenet_reconstruct() -> Result<(), &'static str> {
+        DATA.interpolate(0.2).frenet_reconstruct()?;
         Ok(())
     }
 }
