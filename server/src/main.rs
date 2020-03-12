@@ -1,6 +1,8 @@
 mod channels;
 mod curve;
-use channels::{push_channel, SyncChannel};
+
+use channels::SyncChannel;
+use channels::mock::random_channel;
 use futures::{stream::SplitStream, SinkExt, StreamExt};
 use log::{debug, error, info, warn};
 use roa::cors::Cors;
@@ -16,15 +18,15 @@ use std::borrow::Cow;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init();
     let channel = SyncChannel::new();
-    push_channel(channel.clone());
+    random_channel(channel.clone());
     let mut app = App::new(channel);
     app.gate(logger)
-        .gate(Cors::new())
-        .gate(Websocket::new(handle_ws_client));
+       .gate(Cors::new())
+       .gate(Websocket::new(handle_ws_client));
     app.listen("127.0.0.1:8000", |addr| {
         info!("Server is listening on {}", addr)
     })?
-    .await?;
+        .await?;
     Ok(())
 }
 

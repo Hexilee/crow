@@ -129,7 +129,7 @@ impl CurvatureSplines {
             ai += ti;
             let slice = ai.column(0);
             // push absolute coordinate of current point
-            println!("(x, y, z): ({}, {}, {})", slice[0], slice[1], slice[2]);
+            // println!("(x, y, z): ({}, {}, {})", slice[0], slice[1], slice[2]);
             points.push(Point {
                 x: slice[0],
                 y: slice[1],

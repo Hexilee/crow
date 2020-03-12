@@ -1,5 +1,6 @@
+pub mod mock;
+
 mod curvature_splines;
-mod mock;
 use async_std::sync::{Mutex, RwLock};
 use futures::stream::SplitSink;
 use futures::SinkExt;
@@ -42,5 +43,3 @@ impl SyncChannel {
         self.0.write().await.remove(index).into_inner()
     }
 }
-
-pub use mock::push_channel;
