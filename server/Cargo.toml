@@ -14,8 +14,8 @@ async-std = { version = "1.5", features = ["attributes"] }
 serde = { version = "1", features = ["derive"] }
 futures = "0.3"
 slab = "0.4"
-aljabar = "0.4"
 nalgebra = "0.20"
+splines = "3.1"
 num = "0.2"
 log = "0.4"
 serde_json = "1.0.48"

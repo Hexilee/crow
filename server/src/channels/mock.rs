@@ -20,6 +20,7 @@ pub fn random_channel(channel: SyncChannel) {
                 }
             }
             let points = [
+                (0., 0., 0.),
                 (4.66, curvatures[0], 0.),
                 (9.36, curvatures[1], 0.),
                 (14.82, curvatures[2], 0.),
@@ -27,7 +28,7 @@ pub fn random_channel(channel: SyncChannel) {
                 (24.74, curvatures[4], 0.),
                 (29.95, curvatures[5], 0.),
             ]
-                .interpolate(0.2)
+                .interpolate(0.1)
                 .frenet_reconstruct()
                 .unwrap();
             let timestamp = SystemTime::now()
@@ -49,6 +50,7 @@ pub fn random_channel(channel: SyncChannel) {
 pub fn static_channel(channel: SyncChannel) {
     async_std::task::spawn(async move {
         let data = [
+            (0., 0., 0.),
             (4.66, 0.21, 0.),
             (9.36, 0.27, 0.),
             (14.82, 0.086, 0.),
@@ -58,7 +60,7 @@ pub fn static_channel(channel: SyncChannel) {
         ];
         loop {
             let points = data
-                .interpolate(0.2)
+                .interpolate(0.1)
                 .frenet_reconstruct()
                 .unwrap();
             let timestamp = SystemTime::now()
