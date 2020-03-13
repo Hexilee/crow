@@ -20,7 +20,7 @@ impl<T> PointSlice for T
 where
     T: AsRef<[(f64, f64, f64)]>,
 {
-    // CatMullRom
+    // Linear
     fn interpolate(&self, ds: f64) -> CurvatureSplines {
         let data = self.as_ref();
         if data.is_empty() {
@@ -108,11 +108,18 @@ impl CurvatureSplines {
         let mut ri: Matrix3<f64> = One::one(); // define rotation matrix
         let mut points = Vec::with_capacity(self.splines.len()); // define points vector and reserve capacity
         let mut alpha_last = 0.;
+
+        // Ai vector, as absolute coordinate of last point
         let mut ai = Vector3::new(0., 0., 0.);
         for pair in self.splines.iter() {
             match pair {
                 (0., 0.) => {
+                    // ka == kb == 0, no rotation, only translation.
+
+                    // Ti vector, a translation vector.
                     let ti = ri.pseudo_inverse(0.000000001)? * Vector3::new(0., 0., self.ds);
+
+                    // ai + ti, to get absolute coordinate of current point
                     ai += ti;
                     let slice = ai.column(0);
                     // push absolute coordinate of current point
@@ -135,6 +142,7 @@ impl CurvatureSplines {
                     let sin_phi = phi.sin();
                     let cos_theta = theta.cos();
                     let sin_theta = theta.sin();
+
 
                     ri = Matrix3::new(
                         cos_phi, -sin_phi, 0.,
