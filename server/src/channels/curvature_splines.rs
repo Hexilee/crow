@@ -47,57 +47,72 @@ where
 impl CurvatureSplines {
     #[rustfmt::skip]
     pub fn curvature_reconstruct(&self) -> Result<Vec<Point>, &'static str> {
-        let mut ti: Matrix4<f64> = One::one(); // define transformation matrix
+        let mut ri: Matrix3<f64> = One::one(); // define rotation matrix
         let mut points = Vec::with_capacity(self.splines.len()); // define points vector and reserve capacity
-        for (ka, kb) in self.splines.iter() { // iterate curvature splines
-            let k = (ka.powi(2) + kb.powi(2)).sqrt(); // composite curvature
-            let theta = k * self.ds;
-            let cos_alpha = ka / k;
-            let sin_alpha = kb / k;
-            let cos_theta = theta.cos();
-            let sin_theta = theta.sin();
-            // relative coordinate (da, db, dc)
-            let da = cos_alpha * (1. - cos_theta) / k;
-            let db = sin_alpha * (1. - cos_theta) / k;
-            let dc = sin_theta / k;
 
-            // get generalized inverse of ti; then dot product relative coordinate
-            let point_matrix = ti.pseudo_inverse(0.000000001)? * Vector4::new(da, db, dc, 1.);
-            let point_vector = point_matrix.column(0);
+        // Ai vector, as absolute coordinate of last point
+        let mut ai = Vector3::new(0., 0., 0.);
+        for pair in self.splines.iter() {
+            match pair {
+                (0., 0.) => {
+                    // ka == kb == 0, no rotation, only translation.
 
-            let x = point_vector[0] / point_vector[3];
-            let y = point_vector[1] / point_vector[3];
-            let z = point_vector[2] / point_vector[3];
-            // println!("(da: {}, db: {}, dc: {}),", da, db, dc);
-            // println!("({}, {}, {}),", x, y, z);
-            // push absolute coordinate of current point
-            points.push(Point {
-                x,
-                y,
-                z,
-            });
+                    // Ti vector, a translation vector.
+                    let ti = ri.pseudo_inverse(0.000000001)? * Vector3::new(0., 0., self.ds);
 
-            let ri_plus = Matrix3::new(
-                cos_alpha, -sin_alpha, 0.,
-                sin_alpha, cos_alpha, 0.,
-                0., 0., 1.,
-            ) * Matrix3::new(
-                cos_theta, 0., sin_theta,
-                0., 1., 0.,
-                -sin_theta, 0., cos_theta,
-            ) * Matrix3::new(
-                cos_alpha, sin_alpha, 0.,
-                -sin_alpha, cos_alpha, 0.,
-                0., 0., 1.,
-            );
+                    // ai + ti, to get absolute coordinate of current point
+                    ai += ti;
+                    let slice = ai.column(0);
+                    // push absolute coordinate of current point
+                    // println!("(x, y, z): ({}, {}, {})", slice[0], slice[1], slice[2]);
+                    points.push(Point {
+                        x: slice[0],
+                        y: slice[1],
+                        z: slice[2],
+                    });
+                }
 
-            // get next transformation matrix
-            ti = Matrix4::new(
-                ri_plus.row(0)[0], ri_plus.row(0)[1], ri_plus.row(0)[2], da,
-                ri_plus.row(1)[0], ri_plus.row(1)[1], ri_plus.row(1)[2], db,
-                ri_plus.row(2)[0], ri_plus.row(2)[1], ri_plus.row(2)[2], dc,
-                0., 0., 0., 1.,
-            ) * ti;
+                (ka, kb) => {
+                    let k = (ka.powi(2) + kb.powi(2)).sqrt(); // composite curvature
+                    let theta = k * self.ds;
+                    let cos_alpha = ka / k;
+                    let sin_alpha = kb / k;
+                    let cos_theta = theta.cos();
+                    let sin_theta = theta.sin();
+                    // relative coordinate (da, db, dc)
+                    let da = cos_alpha * (1. - cos_theta) / k;
+                    let db = sin_alpha * (1. - cos_theta) / k;
+                    let dc = sin_theta / k;
+
+                    // get generalized inverse of ti; then dot product relative coordinate
+                    let ti = ri.pseudo_inverse(0.000000001)? * Vector3::new(da, db, dc);
+                    // ai + ti, to get absolute coordinate of current point
+                    ai += ti;
+                    let slice = ai.column(0);
+                    // push absolute coordinate of current point
+                    // println!("(x, y, z): ({}, {}, {})", slice[0], slice[1], slice[2]);
+                    points.push(Point {
+                        x: slice[0],
+                        y: slice[1],
+                        z: slice[2],
+                    });
+
+                    // get next rotation matrix
+                    let ri = Matrix3::new(
+                        cos_alpha, -sin_alpha, 0.,
+                        sin_alpha, cos_alpha, 0.,
+                        0., 0., 1.,
+                    ) * Matrix3::new(
+                        cos_theta, 0., sin_theta,
+                        0., 1., 0.,
+                        -sin_theta, 0., cos_theta,
+                    ) * Matrix3::new(
+                        cos_alpha, sin_alpha, 0.,
+                        -sin_alpha, cos_alpha, 0.,
+                        0., 0., 1.,
+                    ) * ri;
+                }
+            }
         }
         // println!("cost {}ms", time.elapsed().as_millis());
         Ok(points)
