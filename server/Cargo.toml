@@ -24,3 +24,4 @@ rand = "0.7.3"
 
 [dev-dependencies]
 pprof = { version = "0.3", features = ["flamegraph"] }
+plotlib = "0.4"

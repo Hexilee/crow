@@ -98,7 +98,7 @@ impl CurvatureSplines {
                     });
 
                     // get next rotation matrix
-                    let ri = Matrix3::new(
+                    ri = Matrix3::new(
                         cos_alpha, -sin_alpha, 0.,
                         sin_alpha, cos_alpha, 0.,
                         0., 0., 1.,
@@ -205,14 +205,13 @@ mod tests {
     ];
 
     #[test]
-    fn curvature_reconstruct() -> Result<(), &'static str> {
-        DATA.interpolate(0.2).curvature_reconstruct()?;
-        Ok(())
-    }
-
-    #[test]
-    fn frenet_reconstruct() -> Result<(), &'static str> {
-        DATA.interpolate(0.2).frenet_reconstruct()?;
+    fn reconstruct() -> Result<(), &'static str> {
+        let data = DATA.interpolate(0.1);
+        let curvature = data.curvature_reconstruct()?;
+        let frenet = data.frenet_reconstruct()?;
+        for i in 0..curvature.len() {
+            println!("curvature: {:?}\nfrenet: {:?}", curvature[i], frenet[i])
+        }
         Ok(())
     }
 
