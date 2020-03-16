@@ -538,6 +538,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gkquad"
+version = "0.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b90f912105a25155be4b5373f530a1f3ef79c53298e792378eb4311529c1a48e"
+dependencies = [
+ "smallvec",
+]
+
+[[package]]
 name = "glob"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1096,9 +1105,9 @@ checksum = "5894c618ce612a3fa23881b152b608bafb8c56cfc22f434a3ba3120b40f7b587"
 
 [[package]]
 name = "plotlib"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32dc0fc74917a0c3a9895205db329cfe33f0db6b63f612e3dca16fbbd66670f7"
+checksum = "1aa58870a9b439c7acecd3f06d233727a7324dda6f260302230e7519e3b88409"
 dependencies = [
  "failure",
  "svg",
@@ -1426,6 +1435,7 @@ version = "0.1.0"
 dependencies = [
  "async-std",
  "futures",
+ "gkquad",
  "log",
  "nalgebra",
  "num",
@@ -1490,9 +1500,9 @@ checksum = "9091b6114800a5f2141aee1d1b9d6ca3592ac062dc5decb3764ec5895a47b4eb"
 
 [[package]]
 name = "svg"
-version = "0.5.12"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a863ec1f8e7cfd4ea449f77445cca06aac240b9a677ccf12b0f65ef020db52c7"
+checksum = "99bfc4e5077d9047fe8a5cbeb22f0164251e015f85480599892060c07a4e853f"
 
 [[package]]
 name = "symbolic-common"

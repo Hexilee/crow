@@ -1,9 +1,10 @@
 use super::curvature_splines::PointSlice;
 use super::SyncChannel;
 use crate::curve::Curve;
+use num::{One, Zero};
 use rand::Rng;
 use roa::websocket::Message;
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const MAX_FPS: u64 = 60;
 
@@ -28,9 +29,9 @@ pub fn random_channel(channel: SyncChannel) {
                 (24.74, curvatures[4], 0.),
                 (29.95, curvatures[5], 0.),
             ]
-                .interpolate(0.1)
-                .frenet_reconstruct()
-                .unwrap();
+            .interpolate(0.1)
+            .frenet_reconstruct(Zero::zero(), One::one())
+            .unwrap();
             let timestamp = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
@@ -46,7 +47,6 @@ pub fn random_channel(channel: SyncChannel) {
     });
 }
 
-
 pub fn static_channel(channel: SyncChannel) {
     async_std::task::spawn(async move {
         let data = [
@@ -61,7 +61,7 @@ pub fn static_channel(channel: SyncChannel) {
         loop {
             let points = data
                 .interpolate(0.1)
-                .frenet_reconstruct()
+                .frenet_reconstruct(Zero::zero(), One::one())
                 .unwrap();
             let timestamp = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
