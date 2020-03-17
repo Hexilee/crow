@@ -12,7 +12,7 @@ pub trait PointSlice {
 pub struct CurvatureSplines {
     // delta s
     ds: f64,
-    splines: Vec<(f64, f64)>, // (ka, kb)
+    pub splines: Vec<(f64, f64)>, // (ka, kb)
 }
 
 impl<T> PointSlice for T
@@ -198,9 +198,11 @@ mod tests {
     use num::{One, Zero};
     use plotlib::page::Page;
     use plotlib::repr::Plot;
-    use plotlib::style::{LineStyle, PointMarker};
+    use plotlib::style::{LineStyle, PointMarker, PointStyle};
     use plotlib::view::ContinuousView;
     use splines::{Interpolation, Key, Spline};
+            use std::f64::consts::PI;
+
 
     const DATA: [(f64, f64, f64); 7] = [
         (0., 0., 0.),
@@ -322,7 +324,6 @@ mod tests {
 
     #[test]
     fn cos_plot() {
-        use std::f64::consts::PI;
         // data set of standard cos curve.
         let data1 = (0..200)
             .map(|i| i as f64 * 2. * PI / 200.)
@@ -339,7 +340,7 @@ mod tests {
             .collect::<Vec<_>>()
             .interpolate(0.01) // linear interpolate; ds = 0.01.
             .frenet_reconstruct(
-                Vector3::new(0., 0., 1.), // initialized coordinate
+                Vector3::new(0., 0., 1.),                          // initialized coordinate
                 Matrix3::new(0., 0., 1., 0., 1., 0., -1., 0., 0.), // initialized rotation matrix
             )
             .unwrap()
@@ -362,5 +363,28 @@ mod tests {
 
         // A page with a single view is then saved to an SVG file
         Page::single(&v).save("cos.svg").unwrap();
+    }
+
+    #[test]
+    fn s_curvature() {
+        // (s, curvature)
+        let data = (0..9) // nine sample points.
+            .map(|i| i as f64 * 2. * PI / 8.) // get x
+            .map(|x| (cos_s(x), cos_curvature(x))) // get pair (<arc length>, <curvature>, 0.)
+            .collect::<Vec<_>>();
+        let s: Plot = Plot::new(data).point_style(
+            PointStyle::new() // uses the default marker
+                .marker(PointMarker::Circle)
+                .colour("#35C788"),
+        ); // and a different colour
+        let v = ContinuousView::new()
+            .add(s)
+            .x_range(0., 8.)
+            .y_range(-2., 2.)
+            .x_label("s")
+            .y_label("curvature");
+
+        // A page with a single view is then saved to an SVG file
+        Page::single(&v).save("curvature.svg").unwrap();
     }
 }
