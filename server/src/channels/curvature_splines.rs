@@ -305,12 +305,15 @@ mod tests {
         Page::single(&v).save("scatter.svg").unwrap();
     }
 
+    /// Get curvature of this point.
     fn cos_curvature(x: f64) -> f64 {
         x.cos() / (1. + x.sin().powi(2)).powi(3).sqrt()
     }
 
+    /// Get arc length between 0 and x.
     fn cos_s(x: f64) -> f64 {
         use gkquad::single::Integrator;
+        // integral to calculate arc length.
         Integrator::new(|x: f64| (1. + x.sin().powi(2)).sqrt())
             .run(0.0..x)
             .estimate()
@@ -320,23 +323,24 @@ mod tests {
     #[test]
     fn cos_plot() {
         use std::f64::consts::PI;
+        // data set of standard cos curve.
         let data1 = (0..200)
             .map(|i| i as f64 * 2. * PI / 200.)
             .map(|x| (x, x.cos()))
             .collect();
 
-        // We create our scatter plot from the data
+        // create standard cos curve.
         let s1: Plot = Plot::new(data1).line_style(LineStyle::new().colour("#DD3355")); // and a custom colour
 
-        // We can plot multiple data sets in the same view
-        let data2 = (0..9)
-            .map(|i| i as f64 * 2. * PI / 8.)
-            .map(|x| (cos_s(x), cos_curvature(x), 0.))
+        /// reconstruct curve
+        let data2 = (0..9) // nine sample points.
+            .map(|i| i as f64 * 2. * PI / 8.) // get x
+            .map(|x| (cos_s(x), cos_curvature(x), 0.)) // get pair (<arc length>, <curvature>, 0.)
             .collect::<Vec<_>>()
-            .interpolate(0.01)
+            .interpolate(0.01) // linear interpolate; ds = 0.01.
             .frenet_reconstruct(
-                Vector3::new(0., 0., 1.),
-                Matrix3::new(0., 0., 1., 0., 1., 0., -1., 0., 0.),
+                Vector3::new(0., 0., 1.), // initialized coordinate
+                Matrix3::new(0., 0., 1., 0., 1., 0., -1., 0., 0.), // initialized rotation matrix
             )
             .unwrap()
             .into_iter()
