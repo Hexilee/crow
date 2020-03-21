@@ -495,8 +495,11 @@ mod tests {
             .collect();
 
         // create standard cos curve.
-        let mut view = ContinuousView::new()
-            .add(Plot::new(data1).line_style(LineStyle::new().colour(Colour::random(&mut rng))));
+        let mut view = ContinuousView::new().add(
+            Plot::new(data1)
+                .legend("standard cos curve".to_owned())
+                .line_style(LineStyle::new().colour(Colour::random(&mut rng))),
+        );
 
         /// reconstruct curve
         let raw_data = (0..9) // nine sample points.
@@ -517,7 +520,7 @@ mod tests {
                 .map(|point| (-point.x, point.z))
                 .collect();
             view = view
-                .add(Plot::new(data).line_style(LineStyle::new().colour(Colour::random(&mut rng))));
+                .add(Plot::new(data).legend(format!("curvature error {:.1}", 0.1 * index as f64)).line_style(LineStyle::new().colour(Colour::random(&mut rng))));
         }
 
         // The 'view' describes what set of data is drawn
@@ -529,5 +532,55 @@ mod tests {
 
         // A page with a single view is then saved to an SVG file
         Page::single(&v).save("cos-single-error.svg").unwrap();
+    }
+
+    #[test]
+    fn multiple_error() {
+        let mut rng = SmallRng::from_entropy();
+
+        // data set of standard cos curve.
+        let data1 = (0..200)
+            .map(|i| i as f64 * 2. * PI / 200.)
+            .map(|x| (x, x.cos()))
+            .collect();
+
+        // create standard cos curve.
+        let mut view = ContinuousView::new().add(
+            Plot::new(data1)
+                .legend("standard cos curve".to_owned())
+                .line_style(LineStyle::new().colour(Colour::random(&mut rng))),
+        );
+
+        /// reconstruct curve
+        let raw_data = (0..9) // nine sample points.
+            .map(|i| i as f64 * 2. * PI / 8.) // get x
+            .map(|x| (cos_s(x), cos_curvature(x), 0.)) // get pair (<arc length>, <curvature>, 0.)
+            .collect::<Vec<_>>();
+
+        for index in 0..9 {
+            let data = raw_data
+                .set_error(index, (0.4, 0.))
+                .interpolate(0.01) // linear interpolate; ds = 0.01.
+                .frenet_reconstruct(
+                    Vector3::new(0., 0., 1.),                          // initialized coordinate
+                    Matrix3::new(0., 0., 1., 0., 1., 0., -1., 0., 0.), // initialized rotation matrix
+                )
+                .unwrap()
+                .into_iter()
+                .map(|point| (-point.x, point.z))
+                .collect();
+            view = view
+                .add(Plot::new(data).legend(format!("curvature error s={:.4}", raw_data[index].0)).line_style(LineStyle::new().colour(Colour::random(&mut rng))));
+        }
+
+        // The 'view' describes what set of data is drawn
+        let v = view
+            .x_range(0., 7.)
+            .y_range(-3., 2.)
+            .x_label("x")
+            .y_label("y");
+
+        // A page with a single view is then saved to an SVG file
+        Page::single(&v).save("cos-multiple-error.svg").unwrap();
     }
 }
