@@ -20,7 +20,7 @@ num = "0.2"
 log = "0.4"
 serde_json = "1.0.48"
 pretty_env_logger = "0.4.0"
-rand = "0.7.3"
+rand = { version = "0.7.3", features = ["small_rng"] }
 
 [dev-dependencies]
 pprof = { version = "0.3", features = ["flamegraph"] }

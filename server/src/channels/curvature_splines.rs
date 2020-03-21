@@ -7,6 +7,9 @@ use std::time::Instant;
 /// (distance, ka, kb)
 pub trait PointSlice {
     fn interpolate(&self, ds: f64) -> CurvatureSplines;
+
+    /// Set some error
+    fn set_error(&self, index: usize, err: (f64, f64)) -> Vec<(f64, f64, f64)>;
 }
 
 pub struct CurvatureSplines {
@@ -51,6 +54,14 @@ where
         }
 
         CurvatureSplines { ds, splines }
+    }
+
+    /// Set some error
+    fn set_error(&self, index: usize, (ea, eb): (f64, f64)) -> Vec<(f64, f64, f64)> {
+        let mut data = self.as_ref().to_vec();
+        data[index].1 += ea;
+        data[index].2 += eb;
+        data
     }
 }
 
@@ -200,9 +211,10 @@ mod tests {
     use plotlib::repr::Plot;
     use plotlib::style::{LineStyle, PointMarker, PointStyle};
     use plotlib::view::ContinuousView;
+    use rand::rngs::SmallRng;
+    use rand::{Rng, SeedableRng};
     use splines::{Interpolation, Key, Spline};
-            use std::f64::consts::PI;
-
+    use std::f64::consts::PI;
 
     const DATA: [(f64, f64, f64); 7] = [
         (0., 0., 0.),
@@ -386,5 +398,136 @@ mod tests {
 
         // A page with a single view is then saved to an SVG file
         Page::single(&v).save("curvature.svg").unwrap();
+    }
+
+    #[test]
+    fn x_curvature() {
+        // (s, curvature)
+        let data = (0..9) // nine sample points.
+            .map(|i| i as f64 * 2. * PI / 8.) // get x
+            .map(|x| (x, cos_curvature(x))) // get pair (<arc length>, <curvature>, 0.)
+            .collect::<Vec<_>>();
+        let s: Plot = Plot::new(data).point_style(
+            PointStyle::new() // uses the default marker
+                .marker(PointMarker::Circle)
+                .colour("#35C788"),
+        ); // and a different colour
+        let v = ContinuousView::new()
+            .add(s)
+            .x_range(0., 8.)
+            .y_range(-2., 2.)
+            .x_label("x")
+            .y_label("curvature");
+
+        // A page with a single view is then saved to an SVG file
+        Page::single(&v).save("x-curvature.svg").unwrap();
+    }
+
+    #[test]
+    fn circle_plot() {
+        // data set of standard circle curve.
+        let data1 = (0..200)
+            .map(|i| i as f64 * 2. * PI / 200.)
+            .map(|x| (x.cos(), x.sin()))
+            .collect();
+
+        // create standard cos curve.
+        let s1: Plot = Plot::new(data1).line_style(LineStyle::new().colour("#DD3355")); // and a custom colour
+
+        /// reconstruct curve
+        let data2 = (0..9) // nine sample points.
+            .map(|i| i as f64 * 2. * PI / 8.) // get s
+            .map(|s| (s, 1., 0.)) // get pair (<arc length>, <curvature>, 0.)
+            .collect::<Vec<_>>()
+            .interpolate(0.01) // linear interpolate; ds = 0.01.
+            .frenet_reconstruct(
+                Vector3::new(0., 0., 1.),                          // initialized coordinate
+                Matrix3::new(0., 0., 1., 0., 1., 0., -1., 0., 0.), // initialized rotation matrix
+            )
+            .unwrap()
+            .into_iter()
+            .map(|point| (-point.x, point.z))
+            .collect();
+        let s2: Plot = Plot::new(data2).line_style(
+            LineStyle::new() // uses the default marker
+                .colour("#35C788"),
+        ); // and a different colour
+
+        // The 'view' describes what set of data is drawn
+        let v = ContinuousView::new()
+            .add(s1)
+            .add(s2)
+            .x_range(-2., 2.)
+            .y_range(-2., 2.)
+            .x_label("x")
+            .y_label("y");
+
+        // A page with a single view is then saved to an SVG file
+        Page::single(&v).save("circle.svg").unwrap();
+    }
+
+    struct Colour(u8, u8, u8);
+
+    impl Colour {
+        fn random(rng: &mut SmallRng) -> Self {
+            Colour(
+                rng.gen_range(0, 255),
+                rng.gen_range(0, 255),
+                rng.gen_range(0, 255),
+            )
+        }
+    }
+
+    impl From<Colour> for String {
+        fn from(color: Colour) -> Self {
+            format!("#{:X}{:X}{:X}", color.0, color.1, color.2)
+        }
+    }
+
+    #[test]
+    fn single_error() {
+        let mut rng = SmallRng::from_entropy();
+
+        // data set of standard cos curve.
+        let data1 = (0..200)
+            .map(|i| i as f64 * 2. * PI / 200.)
+            .map(|x| (x, x.cos()))
+            .collect();
+
+        // create standard cos curve.
+        let mut view = ContinuousView::new()
+            .add(Plot::new(data1).line_style(LineStyle::new().colour(Colour::random(&mut rng))));
+
+        /// reconstruct curve
+        let raw_data = (0..9) // nine sample points.
+            .map(|i| i as f64 * 2. * PI / 8.) // get x
+            .map(|x| (cos_s(x), cos_curvature(x), 0.)) // get pair (<arc length>, <curvature>, 0.)
+            .collect::<Vec<_>>();
+
+        for index in 0..9 {
+            let data = raw_data
+                .set_error(1, (0.1 * index as f64, 0.))
+                .interpolate(0.01) // linear interpolate; ds = 0.01.
+                .frenet_reconstruct(
+                    Vector3::new(0., 0., 1.),                          // initialized coordinate
+                    Matrix3::new(0., 0., 1., 0., 1., 0., -1., 0., 0.), // initialized rotation matrix
+                )
+                .unwrap()
+                .into_iter()
+                .map(|point| (-point.x, point.z))
+                .collect();
+            view = view
+                .add(Plot::new(data).line_style(LineStyle::new().colour(Colour::random(&mut rng))));
+        }
+
+        // The 'view' describes what set of data is drawn
+        let v = view
+            .x_range(0., 7.)
+            .y_range(-3., 2.)
+            .x_label("x")
+            .y_label("y");
+
+        // A page with a single view is then saved to an SVG file
+        Page::single(&v).save("cos-single-error.svg").unwrap();
     }
 }
