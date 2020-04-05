@@ -73,3 +73,53 @@ pub fn static_channel(channel: SyncChannel) {
         }
     });
 }
+
+pub fn cos_channel(channel: SyncChannel) {
+    use nalgebra::{Matrix3, Vector3};
+    use std::f64::consts::PI;
+    /// Get curvature of this point.
+    fn cos_curvature(x: f64) -> f64 {
+        x.cos() / (1. + x.sin().powi(2)).powi(3).sqrt()
+    }
+
+    /// Get arc length.
+    fn cos_s(from: f64, to: f64) -> f64 {
+        use gkquad::single::Integrator;
+        // integral to calculate arc length.
+        Integrator::new(|x: f64| (1. + x.sin().powi(2)).sqrt())
+            .run(from..to)
+            .estimate()
+            .unwrap()
+    }
+
+    async_std::task::spawn(async move {
+        const PLUS: f64 = 0.01;
+        let min_period_ms = Duration::from_millis(1000 / MAX_FPS);
+        let mut offset = 0.;
+        let init_x = (0..9) // nine sample points.
+            .map(|i| i as f64 * 2. * PI / 8.)
+            .collect::<Vec<_>>();
+        loop {
+            let start = SystemTime::now();
+            let points = init_x
+                .iter()
+                .map(|x| (cos_s(offset, offset + x), cos_curvature(offset + x), 0.)) // get pair (<arc length>, <curvature>, 0.)
+                .collect::<Vec<_>>()
+                .interpolate(0.01) // linear interpolate; ds = 0.01.
+                .frenet_reconstruct(
+                    Vector3::new(0., 0., 1.),                          // initialized coordinate
+                    Matrix3::new(0., 0., 1., 0., 1., 0., -1., 0., 0.), // initialized rotation matrix
+                )
+                .unwrap();
+            let timestamp = start.duration_since(UNIX_EPOCH).unwrap().as_millis() as u64;
+            let curve = Curve { timestamp, points };
+            let data = serde_json::to_string(&curve).unwrap();
+            channel.broadcast(Message::Text(data)).await;
+            let cost = start.elapsed().unwrap();
+            if cost < min_period_ms {
+                async_std::task::sleep(min_period_ms - cost).await;
+            }
+            offset += PLUS;
+        }
+    });
+}

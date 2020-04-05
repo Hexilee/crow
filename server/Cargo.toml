@@ -9,7 +9,7 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-roa = { version = "0.5.0-beta", features = ["websocket"] }
+roa = { version = "0.5.0", features = ["websocket"] }
 async-std = { version = "1.5", features = ["attributes"] }
 serde = { version = "1", features = ["derive"] }
 futures = "0.3"
@@ -21,8 +21,10 @@ log = "0.4"
 serde_json = "1.0.48"
 pretty_env_logger = "0.4.0"
 rand = { version = "0.7.3", features = ["small_rng"] }
+gkquad = "0.0.4"
 
 [dev-dependencies]
 pprof = { version = "0.3", features = ["flamegraph"] }
 plotlib = "0.5"
-gkquad = "0.0.4"
+csv = "1.1.3"
+

@@ -1,7 +1,7 @@
 mod channels;
 mod curve;
 
-use channels::mock::random_channel;
+use channels::mock::cos_channel;
 use channels::SyncChannel;
 use futures::{stream::SplitStream, SinkExt, StreamExt};
 use log::{debug, error, info, warn};
@@ -11,29 +11,29 @@ use roa::preload::*;
 use roa::websocket::tungstenite::protocol::frame::{coding::CloseCode, CloseFrame};
 use roa::websocket::tungstenite::Error as WsError;
 use roa::websocket::{Message, SocketStream, Websocket};
-use roa::{App, SyncContext};
+use roa::{App, Context};
 use std::borrow::Cow;
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init();
     let channel = SyncChannel::new();
-    random_channel(channel.clone());
-    let mut app = App::new(channel);
-    app.gate(logger)
+    cos_channel(channel.clone());
+    App::state(channel)
+        .gate(logger)
         .gate(Cors::new())
-        .gate(Websocket::new(handle_ws_client));
-    app.listen("127.0.0.1:8000", |addr| {
-        info!("Server is listening on {}", addr)
-    })?
-    .await?;
+        .end(Websocket::new(handle_ws_client))
+        .listen("127.0.0.1:8000", |addr| {
+            info!("Server is listening on {}", addr)
+        })?
+        .await?;
     Ok(())
 }
 
-async fn handle_ws_client(ctx: SyncContext<SyncChannel>, stream: SocketStream) {
+async fn handle_ws_client(ctx: Context<SyncChannel>, stream: SocketStream) {
     let (sender, receiver) = stream.split();
     let index = ctx.register(sender).await;
-    let result = handle_message(&ctx, index, receiver).await;
+    let result = handle_message(receiver).await;
     let mut sender = ctx.deregister(index).await;
     if let Err(err) = result {
         let result = sender
@@ -48,11 +48,7 @@ async fn handle_ws_client(ctx: SyncContext<SyncChannel>, stream: SocketStream) {
     }
 }
 
-async fn handle_message(
-    _ctx: &SyncContext<SyncChannel>,
-    _index: usize,
-    mut receiver: SplitStream<SocketStream>,
-) -> Result<(), WsError> {
+async fn handle_message(mut receiver: SplitStream<SocketStream>) -> Result<(), WsError> {
     while let Some(message) = receiver.next().await {
         let message = message?;
         match message {

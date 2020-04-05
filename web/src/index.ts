@@ -42,7 +42,7 @@ socket.addEventListener('open', event => {
 socket.addEventListener('message', event => {
     let data = JSON.parse(event.data) as Curve
     curve = new THREE.CatmullRomCurve3(data.points.map(
-        ({x, y, z}) => (new Vector3(x, y, z)),
+        ({ x, y, z }) => (new Vector3(x, y, z)),
     ))
     console.log('set points')
 })
@@ -87,7 +87,7 @@ const init = () => {
     scene.add(object)
     const planeGeometry = new THREE.PlaneBufferGeometry(2000, 2000)
     // planeGeometry.rotateX(-Math.PI / 2)
-    const planeMaterial = new THREE.ShadowMaterial({opacity: 0.2, color: 0xf0f0f0})
+    const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.2, color: 0xf0f0f0 })
     const plane = new THREE.Mesh(planeGeometry, planeMaterial)
     plane.position.y = -2
     plane.receiveShadow = true
@@ -117,7 +117,7 @@ const animate = () => {
         let geometry = new THREE.TubeGeometry(
             curve,
             64,
-            0.2,
+            0.1,
         )
         bufGeometry.fromGeometry(geometry)
         geometry.dispose()
