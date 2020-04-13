@@ -388,7 +388,7 @@ mod tests {
     #[test]
     fn s_curvature() {
         // (s, curvature)
-        let data = (0..9) // nine sample points.
+        let data = (0..17) // nine sample points.
             .map(|i| i as f64 * 2. * PI / 8.) // get x
             .map(|x| (cos_s(x), cos_curvature(x))) // get pair (<arc length>, <curvature>, 0.)
             .collect::<Vec<_>>();
@@ -399,7 +399,7 @@ mod tests {
         ); // and a different colour
         let v = ContinuousView::new()
             .add(s)
-            .x_range(0., 8.)
+            .x_range(0., 16.)
             .y_range(-2., 2.)
             .x_label("s")
             .y_label("curvature");
