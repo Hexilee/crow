@@ -1,19 +1,32 @@
-import { Curve } from 'three/src/extras/core/Curve'
-import { Vector3 } from 'three/src/math/Vector3'
+import * as THREE from 'three'
+import { Vector3 } from 'three'
 
-export class DelegateCurve extends Curve<Vector3> {
-    constructor(curve: Curve<Vector3>) {
-        super()
-        this.curve = curve
-    }
-
-    curve: Curve<Vector3>
-
-    getPoint(t: number): Vector3 {
-        return this.curve.getPoint(t)
-    }
-
-    setCurve(curve: Curve<Vector3>) {
-        this.curve = curve
-    }
+interface Point {
+    readonly x: number,
+    readonly y: number,
+    readonly z: number,
 }
+
+interface Curve {
+    readonly timestamp: number,
+    readonly points: Array<Point>,
+}
+
+export let curve: THREE.Curve<Vector3> | null = null
+
+const socket = new WebSocket('ws://localhost:8000')
+socket.addEventListener('open', event => {
+    socket.send('Hello, Server')
+})
+socket.addEventListener('message', event => {
+    let data = JSON.parse(event.data) as Curve
+    curve = new THREE.CatmullRomCurve3(data.points.map(
+        ({x, y, z}) => (new Vector3(x, y, z)),
+    ))
+})
+
+socket.addEventListener('error', event => {
+})
+
+socket.addEventListener('close', event => {
+})

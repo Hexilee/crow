@@ -1,8 +1,9 @@
 import * as THREE from 'three'
 import Stats from 'stats.js'
-import { OrbitControls, MapControls } from 'three/examples/jsm/controls/OrbitControls'
-import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
-import { Vector3 } from 'three'
+import { MapControls } from 'three/examples/jsm/controls/OrbitControls'
+import { config } from './config'
+import * as real from './real'
+import * as image from './image'
 
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight)
 const scene = new THREE.Scene()
@@ -12,46 +13,6 @@ const render = () => {
 }
 const stats = new Stats()
 // Geometry
-const material = new THREE.MeshPhongMaterial({
-    color: 0x80ee10,
-    shininess: 100,
-    side: THREE.DoubleSide,
-})
-
-const bufGeometry = new THREE.BufferGeometry()
-const object = new THREE.Mesh(bufGeometry, material)
-object.castShadow = true
-
-interface Point {
-    readonly x: number,
-    readonly y: number,
-    readonly z: number,
-}
-
-interface Curve {
-    readonly timestamp: number,
-    readonly points: Array<Point>,
-}
-
-let curve: THREE.Curve<Vector3> | null = null
-
-const socket = new WebSocket('ws://localhost:8000')
-socket.addEventListener('open', event => {
-    socket.send('Hello, Server')
-})
-socket.addEventListener('message', event => {
-    let data = JSON.parse(event.data) as Curve
-    curve = new THREE.CatmullRomCurve3(data.points.map(
-        ({x, y, z}) => (new Vector3(x, y, z)),
-    ))
-})
-
-socket.addEventListener('error', event => {
-})
-
-socket.addEventListener('close', event => {
-})
-
 
 const controls = new MapControls(camera, renderer.domElement)
 controls.update()
@@ -81,7 +42,6 @@ const init = () => {
     spotLight.shadow.mapSize.width = 1024
     spotLight.shadow.mapSize.height = 1024
     scene.add(spotLight)
-    scene.add(object)
     // scene.background = new THREE.Color( 0xFFFFFF );
     // const planeGeometry = new THREE.PlaneBufferGeometry(2000, 2000)
     // // planeGeometry.rotateX(-Math.PI / 2)
@@ -110,15 +70,18 @@ init()
 const animate = () => {
     requestAnimationFrame(animate)
     stats.begin()
-    if (curve !== null) {
-        let geometry = new THREE.TubeGeometry(
-            curve,
-            64,
-            0.1,
-        )
-        bufGeometry.fromGeometry(geometry)
-        geometry.dispose()
+    if (config.realMode) {
+        scene.background = real.backgroundColor
+        scene.remove(image.object)
+        real.updateGeometry()
+        scene.add(real.object)
+    } else {
+        scene.background = image.backgroundColor
+        scene.remove(real.object)
+        image.updateGeometry()
+        scene.add(image.object)
     }
+
     render()
     stats.end()
 }
