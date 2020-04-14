@@ -42,17 +42,14 @@ socket.addEventListener('open', event => {
 socket.addEventListener('message', event => {
     let data = JSON.parse(event.data) as Curve
     curve = new THREE.CatmullRomCurve3(data.points.map(
-        ({ x, y, z }) => (new Vector3(x, y, z)),
+        ({x, y, z}) => (new Vector3(x, y, z)),
     ))
-    console.log('set points')
 })
 
 socket.addEventListener('error', event => {
-    console.log('receive error')
 })
 
 socket.addEventListener('close', event => {
-    console.log('socket close')
 })
 
 
@@ -63,19 +60,19 @@ controls.dampingFactor = 0.05
 controls.screenSpacePanning = false
 controls.maxPolarAngle = Math.PI / 8
 
-const transformControl = new TransformControls(camera, renderer.domElement)
-transformControl.addEventListener('change', render)
-transformControl.addEventListener('dragging-changed', (event) => {
-    controls.enabled = !event.value
-})
-transformControl.attach(object)
-transformControl.setMode('translate')
-scene.add(transformControl)
+// const transformControl = new TransformControls(camera, renderer.domElement)
+// transformControl.addEventListener('change', render)
+// transformControl.addEventListener('dragging-changed', (event) => {
+//     controls.enabled = !event.value
+// })
+// transformControl.attach(object)
+// transformControl.setMode('translate')
+// scene.add(transformControl)
 
 const init = () => {
     camera.position.set(10, 10, 0)
     // Lights
-    scene.add(new THREE.AmbientLight(0xf0f0f0))
+    // scene.add(new THREE.AmbientLight(0xf0f0f0))
     let spotLight = new THREE.DirectionalLight(0x505050, 1.5)
     spotLight.position.set(0, 1000, 0)
     spotLight.castShadow = true
@@ -85,13 +82,14 @@ const init = () => {
     spotLight.shadow.mapSize.height = 1024
     scene.add(spotLight)
     scene.add(object)
-    const planeGeometry = new THREE.PlaneBufferGeometry(2000, 2000)
-    // planeGeometry.rotateX(-Math.PI / 2)
-    const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.2, color: 0xf0f0f0 })
-    const plane = new THREE.Mesh(planeGeometry, planeMaterial)
-    plane.position.y = -2
-    plane.receiveShadow = true
-    scene.add(plane)
+    // scene.background = new THREE.Color( 0xFFFFFF );
+    // const planeGeometry = new THREE.PlaneBufferGeometry(2000, 2000)
+    // // planeGeometry.rotateX(-Math.PI / 2)
+    // const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.2, color: 0xf0f0f0 })
+    // const plane = new THREE.Mesh(planeGeometry, planeMaterial)
+    // plane.position.y = -2
+    // plane.receiveShadow = true
+    // scene.add(plane)
 
     document.body.appendChild(stats.dom)
     renderer.shadowMap.enabled = true
@@ -109,7 +107,6 @@ const onWindowResize = () => {
 }
 
 init()
-render()
 const animate = () => {
     requestAnimationFrame(animate)
     stats.begin()
@@ -122,7 +119,7 @@ const animate = () => {
         bufGeometry.fromGeometry(geometry)
         geometry.dispose()
     }
-    renderer.render(scene, camera)
+    render()
     stats.end()
 }
 animate()
