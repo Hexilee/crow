@@ -1,15 +1,15 @@
 import * as THREE from 'three'
-import { curve } from './curve'
+import {curve} from './curve'
+import {config} from "./config"
 
 const material = new THREE.MeshPhongMaterial({
-    color: 0x80ee10,
     shininess: 100,
     side: THREE.DoubleSide,
 })
 const bufGeometry = new THREE.BufferGeometry()
-export const backgroundColor = new THREE.Color(0x000000)
 export const object = new THREE.Mesh(bufGeometry, material)
-export const updateGeometry = () => {
+export const update = () => {
+    material.setValues({color: config.color})
     if (curve !== null) {
         let geometry = new THREE.TubeGeometry(
             curve,

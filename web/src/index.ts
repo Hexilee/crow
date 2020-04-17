@@ -2,8 +2,8 @@ import * as THREE from 'three'
 import Stats from 'stats.js'
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls'
 import { config } from './config'
-import * as real from './real'
-import * as image from './image'
+import * as tube from './tube'
+import * as line from './line'
 
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight)
 const scene = new THREE.Scene()
@@ -70,16 +70,15 @@ init()
 const animate = () => {
     requestAnimationFrame(animate)
     stats.begin()
-    if (config.realMode) {
-        scene.background = real.backgroundColor
-        scene.remove(image.object)
-        real.updateGeometry()
-        scene.add(real.object)
+    scene.background = new THREE.Color(config.backgroundColor)
+    if (config.mode == 'tube') {
+        scene.remove(line.object)
+        tube.update()
+        scene.add(tube.object)
     } else {
-        scene.background = image.backgroundColor
-        scene.remove(real.object)
-        image.updateGeometry()
-        scene.add(image.object)
+        scene.remove(tube.object)
+        line.update()
+        scene.add(line.object)
     }
 
     render()
