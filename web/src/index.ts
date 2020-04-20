@@ -1,9 +1,11 @@
 import * as THREE from 'three'
 import Stats from 'stats.js'
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls'
-import { config } from './config'
+import {MapControls} from 'three/examples/jsm/controls/OrbitControls'
+import {config} from './config'
 import * as tube from './tube'
 import * as line from './line'
+import {removeAxes, setAxes} from "./helper/axes"
+import {removeGrid, setGrid} from "./helper/grid"
 
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight)
 const scene = new THREE.Scene()
@@ -33,7 +35,7 @@ controls.maxPolarAngle = Math.PI / 8
 const init = () => {
     camera.position.set(10, 10, 0)
     // Lights
-    // scene.add(new THREE.AmbientLight(0xf0f0f0))
+    scene.add(new THREE.AmbientLight(0x111111))
     let spotLight = new THREE.DirectionalLight(0x505050, 1.5)
     spotLight.position.set(0, 1000, 0)
     spotLight.castShadow = true
@@ -42,12 +44,11 @@ const init = () => {
     spotLight.shadow.mapSize.width = 1024
     spotLight.shadow.mapSize.height = 1024
     scene.add(spotLight)
-    // scene.background = new THREE.Color( 0xFFFFFF );
-    // const planeGeometry = new THREE.PlaneBufferGeometry(2000, 2000)
-    // // planeGeometry.rotateX(-Math.PI / 2)
-    // const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.2, color: 0xf0f0f0 })
+    // const planeGeometry = new THREE.PlaneBufferGeometry(200, 200)
+    // planeGeometry.rotateX(-Math.PI / 2)
+    // const planeMaterial = new THREE.ShadowMaterial({opacity: 1, color: 0xf0f0f0})
     // const plane = new THREE.Mesh(planeGeometry, planeMaterial)
-    // plane.position.y = -2
+    // plane.position.y = 0
     // plane.receiveShadow = true
     // scene.add(plane)
 
@@ -79,6 +80,18 @@ const animate = () => {
         scene.remove(tube.object)
         line.update()
         scene.add(line.object)
+    }
+
+    if (config.axes) {
+        setAxes(scene)
+    } else {
+        removeAxes(scene)
+    }
+
+    if (config.grid) {
+        setGrid(scene)
+    } else {
+        removeGrid(scene)
     }
 
     render()
