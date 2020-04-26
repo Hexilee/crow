@@ -14,19 +14,21 @@ interface Curve {
 
 export let curve: THREE.Curve<Vector3> | null = null
 
-const socket = new WebSocket('ws://localhost:8000')
-socket.addEventListener('open', event => {
-    socket.send('Hello, Server')
-})
-socket.addEventListener('message', event => {
-    let data = JSON.parse(event.data) as Curve
-    curve = new THREE.CatmullRomCurve3(data.points.map(
-        ({x, y, z}) => (new Vector3(x, y, z)),
-    ))
-})
+if (process.env.WS_URL !== undefined) {
+    const socket = new WebSocket(process.env.WS_URL)
+    socket.addEventListener('open', event => {
+        socket.send('Hello, Server')
+    })
+    socket.addEventListener('message', event => {
+        let data = JSON.parse(event.data) as Curve
+        curve = new THREE.CatmullRomCurve3(data.points.map(
+            ({x, y, z}) => (new Vector3(x, y, z)),
+        ))
+    })
 
-socket.addEventListener('error', event => {
-})
+    socket.addEventListener('error', event => {
+    })
 
-socket.addEventListener('close', event => {
-})
+    socket.addEventListener('close', event => {
+    })
+}

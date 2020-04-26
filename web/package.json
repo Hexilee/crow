@@ -17,6 +17,7 @@
     "three-dragcontrols": "^0.88.2"
   },
   "devDependencies": {
+    "@types/node": "^13.13.2",
     "babel-core": "^6.26.3",
     "babel-preset-env": "^1.7.0",
     "json-server": "^0.15.1",
