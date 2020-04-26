@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import Stats from 'stats.js'
-import {MapControls} from 'three/examples/jsm/controls/OrbitControls'
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
 import {config} from './config'
 import * as tube from './tube'
 import * as line from './line'
@@ -10,18 +10,28 @@ import {removeGrid, setGrid} from "./helper/grid"
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight)
 const scene = new THREE.Scene()
 const renderer = new THREE.WebGLRenderer()
-const render = () => {
-    renderer.render(scene, camera)
-}
 const stats = new Stats()
 // Geometry
 
-const controls = new MapControls(camera, renderer.domElement)
-controls.update()
-controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
-controls.dampingFactor = 0.05
-controls.screenSpacePanning = false
-controls.maxPolarAngle = Math.PI / 8
+// const controls = new MapControls(camera, renderer.domElement)
+// controls.update()
+// controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
+// controls.dampingFactor = 0.05
+// controls.screenSpacePanning = false
+// controls.maxPolarAngle = Math.PI / 8
+
+const orbitControls = new OrbitControls(camera, renderer.domElement)
+orbitControls.target = new THREE.Vector3(0, 0, 0)
+orbitControls.autoRotate = false
+orbitControls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
+orbitControls.dampingFactor = 0.05
+// orbitControls.screenSpacePanning = false
+// orbitControls.maxPolarAngle = Math.PI / 8
+
+const render = () => {
+    orbitControls.update();
+    renderer.render(scene, camera)
+}
 
 // const transformControl = new TransformControls(camera, renderer.domElement)
 // transformControl.addEventListener('change', render)
