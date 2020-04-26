@@ -103,7 +103,13 @@ pub fn cos_channel(channel: SyncChannel) {
             let start = SystemTime::now();
             let points = init_x
                 .iter()
-                .map(|x| (cos_s(offset, offset + x), cos_curvature(offset + x), 0.)) // get pair (<arc length>, <curvature>, 0.)
+                .map(|x| {
+                    (
+                        cos_s(offset, offset + x),
+                        cos_curvature(offset + x) / 2f64.sqrt(),
+                        cos_curvature(offset + x) / 2f64.sqrt(),
+                    )
+                }) // get pair (<arc length>, <curvature>, 0.)
                 .collect::<Vec<_>>()
                 .interpolate(0.01) // linear interpolate; ds = 0.01.
                 .frenet_reconstruct(
