@@ -1,9 +1,11 @@
 use super::curvature_splines::PointSlice;
 use super::SyncChannel;
 use crate::curve::Curve;
+use libflate::deflate::Encoder;
 use num::{One, Zero};
 use rand::Rng;
 use roa::websocket::Message;
+use std::io::Write;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const MAX_FPS: u64 = 60;
@@ -121,8 +123,13 @@ pub fn cos_channel(channel: SyncChannel) {
                 .unwrap();
             let timestamp = start.duration_since(UNIX_EPOCH).unwrap().as_millis() as u64;
             let curve = Curve { timestamp, points };
-            let data = serde_json::to_string(&curve).unwrap();
-            channel.broadcast(Message::Text(data)).await;
+            let mut encoder = Encoder::new(Vec::new());
+            encoder
+                .write_all(&serde_json::to_vec(&curve).unwrap())
+                .unwrap();
+            channel
+                .broadcast(Message::Binary(encoder.finish().into_result().unwrap()))
+                .await;
             let cost = start.elapsed().unwrap();
             if cost < min_period_ms {
                 async_std::task::sleep(min_period_ms - cost).await;

@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { Vector3 } from 'three'
+import { inflateRaw } from 'pako'
 
 interface Point {
     readonly x: number,
@@ -20,10 +21,18 @@ if (process.env.WS_URL !== undefined) {
         socket.send('Hello, Server')
     })
     socket.addEventListener('message', event => {
-        let data = JSON.parse(event.data) as Curve
-        curve = new THREE.CatmullRomCurve3(data.points.map(
-            ({x, y, z}) => (new Vector3(x, y, z)),
-        ))
+        if (event.data instanceof Blob) {
+            event.data.arrayBuffer().then(buffer => {
+                console.log(buffer.byteLength)
+                let json = inflateRaw(new Uint8Array(buffer), { to: 'string' })
+                let data = JSON.parse(json) as Curve
+                curve = new THREE.CatmullRomCurve3(data.points.map(
+                    ({ x, y, z }) => (new Vector3(x, y, z)),
+                ))
+            }).catch(err => {
+                console.log(err)
+            })
+        }
     })
 
     socket.addEventListener('error', event => {

@@ -23,6 +23,7 @@ pretty_env_logger = "0.4.0"
 rand = { version = "0.7.3", features = ["small_rng"] }
 gkquad = "0.0.4"
 dotenv = "0.15.0"
+libflate = "0.1"
 
 [dev-dependencies]
 pprof = { version = "0.3", features = ["flamegraph"] }
