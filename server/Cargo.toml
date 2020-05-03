@@ -9,7 +9,7 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-roa = { version = "0.5.0", features = ["websocket"] }
+roa = { version = "0.5.0", features = ["websocket", "router", "file"] }
 async-std = { version = "1.5", features = ["attributes"] }
 serde = { version = "1", features = ["derive"] }
 futures = "0.3"
