@@ -8,6 +8,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const MAX_FPS: u64 = 60;
 
+#[allow(dead_code)]
 pub fn random_channel(channel: SyncChannel) {
     async_std::task::spawn(async move {
         let mut curvatures = [0., 0., 0., 0., 0., 0.];
@@ -47,6 +48,7 @@ pub fn random_channel(channel: SyncChannel) {
     });
 }
 
+#[allow(dead_code)]
 pub fn static_channel(channel: SyncChannel) {
     async_std::task::spawn(async move {
         let data = [

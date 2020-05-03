@@ -29,6 +29,7 @@ impl SyncChannel {
         }
     }
 
+    #[allow(dead_code)]
     pub async fn send(&self, index: usize, message: Message) {
         if let Err(err) = self.0.read().await[index].lock().await.send(message).await {
             error!("message send error: {}", err)

@@ -13,19 +13,20 @@ use roa::websocket::tungstenite::Error as WsError;
 use roa::websocket::{Message, SocketStream, Websocket};
 use roa::{App, Context};
 use std::borrow::Cow;
+use std::env;
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv::dotenv()?;
     pretty_env_logger::init();
+    let server_addr = env::var("CROW_SERVER_ADDR")?;
     let channel = SyncChannel::new();
     cos_channel(channel.clone());
     App::state(channel)
         .gate(logger)
         .gate(Cors::new())
         .end(Websocket::new(handle_ws_client))
-        .listen("127.0.0.1:8000", |addr| {
-            info!("Server is listening on {}", addr)
-        })?
+        .listen(server_addr, |addr| info!("Server is listening on {}", addr))?
         .await?;
     Ok(())
 }
