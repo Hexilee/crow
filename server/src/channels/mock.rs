@@ -113,7 +113,7 @@ pub fn cos_channel(channel: SyncChannel) {
                     )
                 }) // get pair (<arc length>, <curvature>, 0.)
                 .collect::<Vec<_>>()
-                .interpolate(0.01) // linear interpolate; ds = 0.01.
+                .interpolate(0.05) // linear interpolate; ds = 0.05.
                 .frenet_reconstruct(
                     Vector3::new(0., 0., 1.),                          // initialized coordinate
                     Matrix3::new(0., 0., 1., 0., 1., 0., -1., 0., 0.), // initialized rotation matrix
