@@ -80,9 +80,9 @@ impl CurvatureSplines {
                 // push absolute coordinate of current point
                 // println!("(x, y, z): ({}, {}, {})", slice[0], slice[1], slice[2]);
                 points.push(Point {
-                    x: slice[0],
-                    y: slice[1],
-                    z: slice[2],
+                    x: slice[0] as f32,
+                    y: slice[1] as f32,
+                    z: slice[2] as f32,
                 });
             } else {
                 let k = (ka.powi(2) + kb.powi(2)).sqrt(); // composite curvature
@@ -104,9 +104,9 @@ impl CurvatureSplines {
                 // push absolute coordinate of current point
                 // println!("(x, y, z): ({}, {}, {})", slice[0], slice[1], slice[2]);
                 points.push(Point {
-                    x: slice[0],
-                    y: slice[1],
-                    z: slice[2],
+                    x: slice[0] as f32,
+                    y: slice[1] as f32,
+                    z: slice[2] as f32,
                 });
 
                 // get next rotation matrix
@@ -146,9 +146,9 @@ impl CurvatureSplines {
                 // push absolute coordinate of current point
                 // println!("(x, y, z): ({}, {}, {})", slice[0], slice[1], slice[2]);
                 points.push(Point {
-                    x: slice[0],
-                    y: slice[1],
-                    z: slice[2],
+                    x: slice[0] as f32,
+                    y: slice[1] as f32,
+                    z: slice[2] as f32,
                 });
             } else {
                 let k = (ka.powi(2) + kb.powi(2)).sqrt(); // composite curvature
@@ -176,9 +176,9 @@ impl CurvatureSplines {
                 // push absolute coordinate of current point
                 // println!("(x, y, z): ({}, {}, {})", slice[0], slice[1], slice[2]);
                 points.push(Point {
-                    x: slice[0],
-                    y: slice[1],
-                    z: slice[2],
+                    x: slice[0] as f32,
+                    y: slice[1] as f32,
+                    z: slice[2] as f32,
                 });
 
                 ri = Matrix3::new(

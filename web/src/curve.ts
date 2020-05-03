@@ -23,7 +23,7 @@ if (process.env.WS_URL !== undefined) {
     socket.addEventListener('message', event => {
         if (event.data instanceof Blob) {
             event.data.arrayBuffer().then(buffer => {
-                console.log(buffer.byteLength)
+                // console.log(buffer.byteLength)
                 let json = inflateRaw(new Uint8Array(buffer), { to: 'string' })
                 let data = JSON.parse(json) as Curve
                 curve = new THREE.CatmullRomCurve3(data.points.map(
