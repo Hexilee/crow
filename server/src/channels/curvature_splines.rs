@@ -291,7 +291,7 @@ mod tests {
             .frenet_reconstruct(Zero::zero(), One::one())
             .unwrap()
             .into_iter()
-            .map(|point| (-point.x, point.z))
+            .map(|point| (-point.x as f64, point.z as f64))
             .collect();
         let s2: Plot = Plot::new(data2).line_style(
             LineStyle::new() // uses the default marker
@@ -350,7 +350,7 @@ mod tests {
             )
             .unwrap()
             .into_iter()
-            .map(|point| (-point.x, point.z))
+            .map(|point| (-point.x as f64, point.z as f64))
             .collect();
         let mut csv_file = Writer::from_path("cos.csv").unwrap();
         csv_file.write_record(&["x", "y"]).unwrap();
@@ -471,7 +471,7 @@ mod tests {
                 )
                 .unwrap()
                 .into_iter()
-                .map(|point| (-point.x, point.z))
+                .map(|point| (-point.x as f64, point.z as f64))
                 .collect();
             view = view.add(
                 Plot::new(data)
@@ -524,7 +524,7 @@ mod tests {
                 )
                 .unwrap()
                 .into_iter()
-                .map(|point| (-point.x, point.z))
+                .map(|point| (-point.x as f64, point.z as f64))
                 .collect();
             view = view.add(
                 Plot::new(data)
@@ -577,7 +577,7 @@ mod tests {
                 )
                 .unwrap()
                 .into_iter()
-                .map(|point| (-point.x, point.z))
+                .map(|point| (-point.x as f64, point.z as f64))
                 .collect();
             view = view.add(
                 Plot::new(data)
@@ -636,14 +636,14 @@ mod tests {
                 )
                 .unwrap()
                 .into_iter()
-                .map(|point| (-point.x, point.z))
+                .map(|point| (-point.x as f64, point.z as f64))
                 .collect();
             let errors = data
                 .iter()
                 .enumerate()
                 .map(|(index, (x, y))| {
                     let theta = index as f64 * STEP;
-                    (theta, sum_error(theta, (x, y)))
+                    (theta, sum_error(theta, (x as &f64, y as &f64)))
                 })
                 .collect();
 
@@ -716,7 +716,7 @@ mod tests {
                 )
                 .unwrap()
                 .into_iter()
-                .map(|point| (-point.x, point.z))
+                .map(|point| (-point.x as f64, point.z as f64))
                 .collect();
 
             let errors = data
@@ -724,7 +724,7 @@ mod tests {
                 .enumerate()
                 .map(|(index, (x, y))| {
                     let theta = index as f64 * STEP;
-                    (theta, sum_error(theta, (x, y)))
+                    (theta, sum_error(theta, (x as &f64, y as &f64)))
                 })
                 .collect();
 
