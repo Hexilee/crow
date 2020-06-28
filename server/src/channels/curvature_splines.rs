@@ -701,14 +701,14 @@ mod tests {
         let mut error_view = ContinuousView::new();
 
         /// reconstruct curve
-        let raw_data = (0..9) // nine sample points.
-            .map(|i| i as f64 * 2. * PI / 8.) // get x
+        let raw_data = (0..5) // nine sample points.
+            .map(|i| i as f64 * 2. * PI / 4.) // get x
             .map(|theta| (theta, 1., 0.)) // get pair (<arc length>, <curvature>, 0.)
             .collect::<Vec<_>>();
 
-        for index in 0..9 {
+        for index in 0..5 {
             let data: Vec<_> = raw_data
-                .set_error(index, (1.4, 1.))
+                .set_error(index, (1.2, 1.))
                 .interpolate(0.01) // linear interpolate; ds = 0.01.
                 .frenet_reconstruct(
                     Vector3::new(0., 0., 1.),                          // initialized coordinate
