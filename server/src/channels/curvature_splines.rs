@@ -326,9 +326,20 @@ mod tests {
             .unwrap()
     }
 
+    fn error(data: &[(f64, f64)], std_fn: &dyn Fn(&f64) -> f64) -> Vec<(f64, f64)> {
+        let mut errors = data.to_owned();
+        for (x, y) in errors.iter_mut() {
+            *y = (*y - std_fn(x)).abs()
+        }
+        errors
+    }
+
     #[test]
     fn cos_plot() {
         use csv::Writer;
+
+        let mut rng = SmallRng::from_entropy();
+
         // data set of standard cos curve.
         let data1 = (0..200)
             .map(|i| i as f64 * 2. * PI / 200.)
@@ -336,9 +347,11 @@ mod tests {
             .collect();
 
         // create standard cos curve.
-        let s1: Plot = Plot::new(data1).line_style(LineStyle::new().colour("#DD3355")); // and a custom colour
+        let s1: Plot = Plot::new(data1)
+            .legend("Standard Curve".to_string())
+            .line_style(LineStyle::new().colour(Colour::random(&mut rng))); // and a custom colour
 
-        /// reconstruct curve
+        // reconstruct curve
         let data2: Vec<_> = (0..9) // nine sample points.
             .map(|i| i as f64 * 2. * PI / 8.) // get x
             .map(|x| (cos_s(x), cos_curvature(x), 0.)) // get pair (<arc length>, <curvature>, 0.)
@@ -357,10 +370,14 @@ mod tests {
         for (x, y) in data2.iter() {
             csv_file.serialize((*x, *y)).unwrap();
         }
-        let s2: Plot = Plot::new(data2).line_style(
-            LineStyle::new() // uses the default marker
-                .colour("#35C788"),
-        ); // and a different colour
+
+        let s_error: Plot = Plot::new(error(data2.as_slice(), &|x| x.cos()))
+            .legend("Errors".to_string())
+            .line_style(LineStyle::new().colour(Colour::random(&mut rng)));
+
+        let s2: Plot = Plot::new(data2)
+            .legend("Reconstructed Curve".to_string())
+            .line_style(LineStyle::new().colour(Colour::random(&mut rng))); // and a different colour
 
         // The 'view' describes what set of data is drawn
         let v = ContinuousView::new()
@@ -371,8 +388,17 @@ mod tests {
             .x_label("x")
             .y_label("y");
 
+        let v_error = ContinuousView::new()
+            .add(s_error)
+            .x_range(0., 7.)
+            .y_range(0., 0.1)
+            .x_label("x")
+            .y_label("error");
+
         // A page with a single view is then saved to an SVG file
         Page::single(&v).save("cos.svg").unwrap();
+
+        Page::single(&v_error).save("cos-error.svg").unwrap();
     }
 
     #[test]
@@ -456,7 +482,7 @@ mod tests {
                 .line_style(LineStyle::new().colour(Colour::random(&mut rng))),
         );
 
-        /// reconstruct curve
+        // reconstruct curve
         let raw_data = (0..9) // nine sample points.
             .map(|i| i as f64 * 2. * PI / 8.) // get x
             .map(|x| (cos_s(x), cos_curvature(x), 0.)) // get pair (<arc length>, <curvature>, 0.)
@@ -508,7 +534,7 @@ mod tests {
                 .line_style(LineStyle::new().colour(Colour::random(&mut rng))),
         );
 
-        /// reconstruct curve
+        // reconstruct curve
         let raw_data = (0..9) // nine sample points.
             .map(|i| i as f64 * 2. * PI / 8.) // get x
             .map(|x| (cos_s(x), cos_curvature(x), 0.)) // get pair (<arc length>, <curvature>, 0.)
@@ -561,11 +587,13 @@ mod tests {
                 .line_style(LineStyle::new().colour(Colour::random(&mut rng))),
         );
 
-        /// reconstruct curve
+        // reconstruct curve
         let raw_data = (0..9) // nine sample points.
             .map(|i| i as f64 * 2. * PI / 8.) // get x
             .map(|x| (cos_s(x), cos_curvature(x), 0.)) // get pair (<arc length>, <curvature>, 0.)
             .collect::<Vec<_>>();
+
+        let block_lines = [2, 6, 7, 8, 9];
 
         for index in 0..9 {
             let data = raw_data
@@ -579,11 +607,13 @@ mod tests {
                 .into_iter()
                 .map(|point| (-point.x as f64, point.z as f64))
                 .collect();
-            view = view.add(
-                Plot::new(data)
-                    .legend(format!("curvature error s={:.4}", raw_data[index].0))
-                    .line_style(LineStyle::new().colour(Colour::random(&mut rng))),
-            );
+            if !block_lines.contains(&index) {
+                view = view.add(
+                    Plot::new(data)
+                        .legend(format!("curvature error s={:.3}", raw_data[index].0))
+                        .line_style(LineStyle::new().colour(Colour::random(&mut rng))),
+                );
+            }
         }
 
         // The 'view' describes what set of data is drawn
@@ -620,7 +650,7 @@ mod tests {
 
         let mut error_view = ContinuousView::new();
 
-        /// reconstruct curve
+        // reconstruct curve
         let raw_data = (0..9) // nine sample points.
             .map(|i| i as f64 * 2. * PI / 8.) // get x
             .map(|theta| (theta, 1., 0.)) // get pair (<arc length>, <curvature>, 0.)
@@ -700,7 +730,7 @@ mod tests {
 
         let mut error_view = ContinuousView::new();
 
-        /// reconstruct curve
+        // reconstruct curve
         let raw_data = (0..5) // nine sample points.
             .map(|i| i as f64 * 2. * PI / 4.) // get x
             .map(|theta| (theta, 1., 0.)) // get pair (<arc length>, <curvature>, 0.)
