@@ -334,6 +334,19 @@ mod tests {
         errors
     }
 
+    fn relative_error(data: &[(f64, f64)], std_fn: impl Fn(&f64) -> f64) -> Vec<(f64, f64)> {
+        let mut errors = data.to_owned();
+        for (x, y) in errors.iter_mut() {
+            let s = cos_s(*x);
+            if s == 0. {
+                *y = 0.
+            } else {
+                *y = (*y - std_fn(x)).abs() / s
+            }
+        }
+        errors
+    }
+
     fn cos_error(data: impl AsRef<[(f64, f64)]>, legend: impl Into<String>) -> Plot {
         let mut rng = SmallRng::from_entropy();
         Plot::new(error(data.as_ref(), |x| x.cos()))
@@ -356,7 +369,7 @@ mod tests {
         // create standard cos curve.
         let s1: Plot = Plot::new(data1)
             .legend("Standard Curve".to_string())
-            .line_style(LineStyle::new().colour(Colour::random(&mut rng))); // and a custom colour
+            .line_style(LineStyle::new().colour("#000000")); // and a custom colour
 
         // reconstruct curve
         let data2: Vec<_> = (0..9) // nine sample points.
@@ -379,9 +392,13 @@ mod tests {
         }
 
         let s_error = cos_error(&data2, "Reconstructed Curve");
+        let s_relative_error = Plot::new(relative_error(&data2, |x| x.cos()))
+            .legend("Reconstructed Curve".into())
+            .line_style(LineStyle::new().colour(Colour::random(&mut rng)));
+
         let s2: Plot = Plot::new(data2)
             .legend("Reconstructed Curve".to_string())
-            .line_style(LineStyle::new().colour(Colour::random(&mut rng))); // and a different colour
+            .line_style(LineStyle::new().colour("#FF0000")); // and a different colour
 
         // The 'view' describes what set of data is drawn
         let v = ContinuousView::new()
@@ -399,10 +416,21 @@ mod tests {
             .x_label("x")
             .y_label("error");
 
+        let v_relative_error = ContinuousView::new()
+            .add(s_relative_error)
+            .x_range(0., 7.)
+            .y_range(0., 0.05)
+            .x_label("x")
+            .y_label("error");
+
         // A page with a single view is then saved to an SVG file
         Page::single(&v).save("cos.svg").unwrap();
 
         Page::single(&v_error).save("cos-error.svg").unwrap();
+
+        Page::single(&v_relative_error)
+            .save("cos-relative-error.svg")
+            .unwrap();
     }
 
     #[test]
@@ -471,8 +499,6 @@ mod tests {
 
     #[test]
     fn cos_diff_step() {
-        let mut rng = SmallRng::from_entropy();
-
         // data set of standard cos curve.
         let data1 = (0..200)
             .map(|i| i as f64 * 2. * PI / 200.)
@@ -483,10 +509,11 @@ mod tests {
         let mut view = ContinuousView::new().add(
             Plot::new(data1)
                 .legend("standard cos curve".to_owned())
-                .line_style(LineStyle::new().colour(Colour::random(&mut rng))),
+                .line_style(LineStyle::new().colour("#000000")),
         );
 
         let mut error_view = ContinuousView::new();
+        let mut relative_error_view = ContinuousView::new();
 
         // reconstruct curve
         let raw_data = (0..9) // nine sample points.
@@ -494,8 +521,10 @@ mod tests {
             .map(|x| (cos_s(x), cos_curvature(x), 0.)) // get pair (<arc length>, <curvature>, 0.)
             .collect::<Vec<_>>();
 
-        for step in [0.1, 0.01, 0.001].iter() {
-            let data = raw_data
+        let colors = ["#FF0000", "#00FF00", "#0000FF"];
+
+        for (i, step) in [0.1, 0.01, 0.001].iter().enumerate() {
+            let data: Vec<_> = raw_data
                 .interpolate(*step) // linear interpolate
                 .frenet_reconstruct(
                     Vector3::new(0., 0., 1.),                          // initialized coordinate
@@ -505,11 +534,22 @@ mod tests {
                 .into_iter()
                 .map(|point| (-point.x as f64, point.z as f64))
                 .collect();
-            error_view = error_view.add(cos_error(&data, format!("step {:.3}", *step)));
+            let color = colors[i];
+
+            error_view = error_view.add(
+                Plot::new(error(&data, |x| x.cos()))
+                    .legend(format!("step {:.3}", *step))
+                    .line_style(LineStyle::new().colour(color)),
+            );
+            relative_error_view = relative_error_view.add(
+                Plot::new(relative_error(&data, |x| x.cos()))
+                    .legend(format!("step {:.3}", *step))
+                    .line_style(LineStyle::new().colour(color)),
+            );
             view = view.add(
                 Plot::new(data)
                     .legend(format!("step {:.3}", *step))
-                    .line_style(LineStyle::new().colour(Colour::random(&mut rng))),
+                    .line_style(LineStyle::new().colour(color)),
             );
         }
 
@@ -518,6 +558,13 @@ mod tests {
             .y_range(0., 0.5)
             .x_label("x")
             .y_label("error");
+
+        let relative_error_v = relative_error_view
+            .x_range(0., 7.)
+            .y_range(0., 0.1)
+            .x_label("x")
+            .y_label("error");
+
         // The 'view' describes what set of data is drawn
         let v = view
             .x_range(0., 7.)
@@ -528,6 +575,10 @@ mod tests {
         // A page with a single view is then saved to an SVG file
         Page::single(&error_v)
             .save("cos-diff-step-error.svg")
+            .unwrap();
+
+        Page::single(&relative_error_v)
+            .save("cos-diff-step-relative-error.svg")
             .unwrap();
         Page::single(&v).save("cos-diff-step.svg").unwrap();
     }
