@@ -26,6 +26,6 @@ dotenv = "0.15.0"
 libflate = "0.1"
 
 [dev-dependencies]
-plotlib = "0.5"
+plotlib = "0.5.1"
 csv = "1.1.3"
 

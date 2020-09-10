@@ -205,6 +205,7 @@ mod tests {
     use rand::{Rng, SeedableRng};
     use splines::{Interpolation, Key, Spline};
     use std::f64::consts::PI;
+    use std::time::SystemTime;
 
     const STEP: f64 = 0.01;
 
@@ -615,11 +616,9 @@ mod tests {
             .map(|point| (-point.x as f64, point.z as f64))
             .collect::<Vec<_>>();
 
-        println!("curvature_data: {:?}", curvature_data);
-
         error_view = error_view.add(
             Plot::new(error(&curvature_data, |x| x.cos()))
-                .legend("Traditional Algorithm".to_string())
+                .legend("Legacy Algorithm".to_string())
                 .line_style(LineStyle::new().colour("#FF0000")),
         );
 
@@ -631,7 +630,7 @@ mod tests {
 
         relative_error_view = relative_error_view.add(
             Plot::new(relative_error(&curvature_data, |x| x.cos()))
-                .legend("Traditional Algorithm".to_string())
+                .legend("Legacy Algorithm".to_string())
                 .line_style(LineStyle::new().colour("#FF0000")),
         );
 
@@ -660,6 +659,88 @@ mod tests {
 
         Page::single(&relative_error_v)
             .save("cos-diff-method-relative-error.svg")
+            .unwrap();
+    }
+
+    fn group_count(raw_data: Vec<u128>) -> Vec<(f64, f64)> {
+        let mut map = std::collections::HashMap::new();
+        for val in raw_data {
+            if let Some(count) = map.get_mut(&val) {
+                *count += 1;
+            } else {
+                map.insert(val, 1);
+            }
+        }
+        map.into_iter()
+            .map(|(k, v)| (k as f64 / 1000., v as f64))
+            .collect()
+    }
+
+    #[test]
+    fn cos_diff_method_time() {
+        let mut time_view = ContinuousView::new();
+        // reconstruct curve
+        let splines = (0..9) // nine sample points.
+            .map(|i| i as f64 * 2. * PI / 8.) // get x
+            .map(|x| (cos_s(x), cos_curvature(x), 0.)) // get pair (<arc length>, <curvature>, 0.)
+            .collect::<Vec<_>>()
+            .interpolate(0.01);
+
+        let curvature_times = (1..1000)
+            .map(|_| {
+                let start = SystemTime::now();
+                splines
+                    .curvature_reconstruct(
+                        Vector3::new(0., 0., 1.),                          // initialized coordinate
+                        Matrix3::new(0., 0., 1., 0., 1., 0., -1., 0., 0.), // initialized rotation matrix
+                    )
+                    .unwrap();
+                start.elapsed().unwrap().as_micros()
+            })
+            .collect::<Vec<_>>();
+
+        let frenet_times = (1..1000)
+            .map(|_| {
+                let start = SystemTime::now();
+                splines
+                    .frenet_reconstruct(
+                        Vector3::new(0., 0., 1.),                          // initialized coordinate
+                        Matrix3::new(0., 0., 1., 0., 1., 0., -1., 0., 0.), // initialized rotation matrix
+                    )
+                    .unwrap();
+                start.elapsed().unwrap().as_micros()
+            })
+            .collect::<Vec<_>>();
+
+        // dbg!(frenet_times);
+        // dbg!(curvature_times);
+
+        time_view = time_view.add(
+            Plot::new(group_count(curvature_times))
+                // .legend("Legacy Algorithm".to_string())
+                .point_style(
+                    PointStyle::new()
+                        .size(3.)
+                        .marker(PointMarker::Square)
+                        .colour("#FF0000"),
+                ),
+        );
+
+        time_view = time_view.add(
+            Plot::new(group_count(frenet_times))
+                // .legend("New Algorithm".to_string())
+                .point_style(PointStyle::new().size(3.).colour("#0000FF")),
+        );
+
+        let time_v = time_view
+            .x_range(0., 10.)
+            .y_range(0., 50.)
+            .x_label("elapsed/ms")
+            .y_label("count");
+
+        // A page with a single view is then saved to an SVG file
+        Page::single(&time_v)
+            .save("cos-diff-method-elapsed.svg")
             .unwrap();
     }
 
