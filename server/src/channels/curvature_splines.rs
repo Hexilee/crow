@@ -584,6 +584,86 @@ mod tests {
     }
 
     #[test]
+    fn cos_diff_method() {
+        let mut error_view = ContinuousView::new();
+        let mut relative_error_view = ContinuousView::new();
+
+        // reconstruct curve
+        let splines = (0..9) // nine sample points.
+            .map(|i| i as f64 * 2. * PI / 8.) // get x
+            .map(|x| (cos_s(x), cos_curvature(x), 0.)) // get pair (<arc length>, <curvature>, 0.)
+            .collect::<Vec<_>>()
+            .interpolate(0.01);
+
+        let frenet_data = splines
+            .frenet_reconstruct(
+                Vector3::new(0., 0., 1.),                          // initialized coordinate
+                Matrix3::new(0., 0., 1., 0., 1., 0., -1., 0., 0.), // initialized rotation matrix
+            )
+            .unwrap()
+            .into_iter()
+            .map(|point| (-point.x as f64, point.z as f64))
+            .collect::<Vec<_>>();
+
+        let curvature_data = splines
+            .curvature_reconstruct(
+                Vector3::new(0., 0., 1.),                          // initialized coordinate
+                Matrix3::new(0., 0., 1., 0., 1., 0., -1., 0., 0.), // initialized rotation matrix
+            )
+            .unwrap()
+            .into_iter()
+            .map(|point| (-point.x as f64, point.z as f64))
+            .collect::<Vec<_>>();
+
+        println!("curvature_data: {:?}", curvature_data);
+
+        error_view = error_view.add(
+            Plot::new(error(&curvature_data, |x| x.cos()))
+                .legend("Traditional Algorithm".to_string())
+                .line_style(LineStyle::new().colour("#FF0000")),
+        );
+
+        error_view = error_view.add(
+            Plot::new(error(&frenet_data, |x| x.cos()))
+                .legend("New Algorithm".to_string())
+                .line_style(LineStyle::new().colour("#0000FF")),
+        );
+
+        relative_error_view = relative_error_view.add(
+            Plot::new(relative_error(&curvature_data, |x| x.cos()))
+                .legend("Traditional Algorithm".to_string())
+                .line_style(LineStyle::new().colour("#FF0000")),
+        );
+
+        relative_error_view = relative_error_view.add(
+            Plot::new(relative_error(&frenet_data, |x| x.cos()))
+                .legend("New Algorithm".to_string())
+                .line_style(LineStyle::new().colour("#0000FF")),
+        );
+
+        let error_v = error_view
+            .x_range(0., 7.)
+            .y_range(0., 0.1)
+            .x_label("x")
+            .y_label("error");
+
+        let relative_error_v = relative_error_view
+            .x_range(0., 7.)
+            .y_range(0., 0.05)
+            .x_label("x")
+            .y_label("error");
+
+        // A page with a single view is then saved to an SVG file
+        Page::single(&error_v)
+            .save("cos-diff-method-error.svg")
+            .unwrap();
+
+        Page::single(&relative_error_v)
+            .save("cos-diff-method-relative-error.svg")
+            .unwrap();
+    }
+
+    #[test]
     fn single_cos_error() {
         let mut rng = SmallRng::from_entropy();
 
