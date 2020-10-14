@@ -70,16 +70,17 @@ async fn handle_downstream_client(ctx: Context<SyncChannels>, stream: SocketStre
     let (sender, receiver) = stream.split();
     let index = channel.register(sender).await;
     let result = handle_downstream_message(receiver).await;
-    let mut sender = channel.deregister(index).await;
-    if let Err(err) = result {
-        let result = sender
-            .send(Message::Close(Some(CloseFrame {
-                code: CloseCode::Invalid,
-                reason: Cow::Owned(err.to_string()),
-            })))
-            .await;
+    if let Some(mut sender) = channel.deregister(index).await {
         if let Err(err) = result {
-            error!("send close message error: {}", err)
+            let result = sender
+                .send(Message::Close(Some(CloseFrame {
+                    code: CloseCode::Invalid,
+                    reason: Cow::Owned(err.to_string()),
+                })))
+                .await;
+            if let Err(err) = result {
+                error!("send close message error: {}", err)
+            }
         }
     }
 }

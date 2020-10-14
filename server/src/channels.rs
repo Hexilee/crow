@@ -28,10 +28,15 @@ impl SyncChannel {
 
     pub async fn broadcast(&self, message: Message) {
         let channel = self.0.read().await;
-        for (_, sender) in channel.iter() {
+        let mut broken_sender = Vec::new();
+        for (index, sender) in channel.iter() {
             if let Err(err) = sender.lock().await.send(message.clone()).await {
                 error!("broadcast error: {}", err);
+                broken_sender.push(index);
             }
+        }
+        for index in broken_sender {
+            self.0.write().await.remove(index);
         }
     }
 
@@ -46,8 +51,13 @@ impl SyncChannel {
         self.0.write().await.insert(Mutex::new(sender))
     }
 
-    pub async fn deregister(&self, index: usize) -> Sender {
-        self.0.write().await.remove(index).into_inner()
+    pub async fn deregister(&self, index: usize) -> Option<Sender> {
+        let mut channel = self.0.write().await;
+        if channel.contains(index) {
+            Some(channel.remove(index).into_inner())
+        } else {
+            None
+        }
     }
 
     pub async fn deregister_all(&self) {
