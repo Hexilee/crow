@@ -2,16 +2,18 @@ mod channels;
 mod curve;
 
 use channels::mock::cos_channel;
-use channels::SyncChannel;
+use channels::SyncChannels;
 use futures::{stream::SplitStream, SinkExt, StreamExt};
 use log::{debug, error, info, warn};
 use roa::cors::Cors;
+use roa::http::Method;
 use roa::logger::logger;
 use roa::preload::*;
+use roa::router::{allow, Router};
 use roa::websocket::tungstenite::protocol::frame::{coding::CloseCode, CloseFrame};
 use roa::websocket::tungstenite::Error as WsError;
 use roa::websocket::{Message, SocketStream, Websocket};
-use roa::{App, Context};
+use roa::{App, Context, Next};
 use std::borrow::Cow;
 use std::env;
 
@@ -20,22 +22,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv()?;
     pretty_env_logger::init();
     let server_addr = env::var("CROW_SERVER_ADDR")?;
-    let channel = SyncChannel::new();
-    cos_channel(channel.clone());
-    App::state(channel)
+    let channels = SyncChannels::new();
+    cos_channel(channels.new_channel().await.1);
+
+    let downstream_router = Router::new().gate(subscribe_guard).on(
+        "/",
+        allow([Method::GET], Websocket::new(handle_downstream_client)),
+    );
+    let router = Router::new().include("/down/:id", downstream_router);
+    App::state(channels)
         .gate(logger)
         .gate(Cors::new())
-        .end(Websocket::new(handle_ws_client))
+        .end(router.routes("/")?)
         .listen(server_addr, |addr| info!("Server is listening on {}", addr))?
         .await?;
     Ok(())
 }
 
-async fn handle_ws_client(ctx: Context<SyncChannel>, stream: SocketStream) {
+async fn subscribe_guard(ctx: &mut Context<SyncChannels>, next: Next<'_>) -> roa::Result<()> {
+    let index: usize = ctx.must_param("id")?.parse()?;
+    ctx.get_channel(index).await?;
+    next.await
+}
+
+async fn handle_downstream_client(ctx: Context<SyncChannels>, stream: SocketStream) {
+    let index: usize = ctx.must_param("id").and_then(|id| id.parse()).unwrap();
+    let channel = ctx.get_channel(index).await.unwrap();
+
     let (sender, receiver) = stream.split();
-    let index = ctx.register(sender).await;
-    let result = handle_message(receiver).await;
-    let mut sender = ctx.deregister(index).await;
+    let index = channel.register(sender).await;
+    let result = handle_downstream_message(receiver).await;
+    let mut sender = channel.deregister(index).await;
     if let Err(err) = result {
         let result = sender
             .send(Message::Close(Some(CloseFrame {
@@ -49,7 +66,7 @@ async fn handle_ws_client(ctx: Context<SyncChannel>, stream: SocketStream) {
     }
 }
 
-async fn handle_message(mut receiver: SplitStream<SocketStream>) -> Result<(), WsError> {
+async fn handle_downstream_message(mut receiver: SplitStream<SocketStream>) -> Result<(), WsError> {
     while let Some(message) = receiver.next().await {
         let message = message?;
         match message {

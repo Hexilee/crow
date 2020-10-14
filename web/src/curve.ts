@@ -16,7 +16,7 @@ interface Curve {
 export let curve: THREE.Curve<Vector3> | null = null
 
 if (process.env.WS_URL !== undefined) {
-    const socket = new WebSocket(process.env.WS_URL)
+    const socket = new WebSocket(`${process.env.WS_URL}/down/0`)
     socket.addEventListener('open', event => {
         socket.send('Hello, Server')
     })
