@@ -1,6 +1,8 @@
 import {GUI} from 'dat.gui'
 
-interface Config {
+export interface Config {
+    server: string,
+    channel: number,
     mode: 'tube' | 'line',
     color: string
     backgroundColor: string
@@ -9,6 +11,8 @@ interface Config {
 }
 
 export const config: Config = {
+    server: process.env.WS_URL || 'ws://127.0.0.1:8000',
+    channel: 0,
     mode: 'tube',
     color: '#FF4700',
     backgroundColor: '#000000',
@@ -17,6 +21,8 @@ export const config: Config = {
 }
 
 const gui = new GUI()
+gui.add(config, 'server')
+gui.add(config, 'channel')
 gui.add(config, 'mode', ['tube', 'line'])
 gui.add(config, 'color')
 gui.add(config, 'backgroundColor')

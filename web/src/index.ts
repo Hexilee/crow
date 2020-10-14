@@ -1,11 +1,14 @@
 import * as THREE from 'three'
 import Stats from 'stats.js'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
-import {config} from './config'
+import {config, Config} from './config'
 import * as tube from './tube'
 import * as line from './line'
 import {removeAxes, setAxes} from "./helper/axes"
 import {removeGrid, setGrid} from "./helper/grid"
+import { reconnect } from './curve'
+
+let lastConfig: Config
 
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight)
 const scene = new THREE.Scene()
@@ -81,8 +84,13 @@ init()
 const animate = () => {
     requestAnimationFrame(animate)
     stats.begin()
+
     scene.background = new THREE.Color(config.backgroundColor)
-    if (config.mode == 'tube') {
+
+    if (lastConfig === undefined || lastConfig.server !== config.server || lastConfig.channel !== config.channel) {
+        reconnect(config.server, config.channel)
+    }
+    if (config.mode === 'tube') {
         scene.remove(line.object)
         tube.update()
         scene.add(tube.object)
@@ -104,7 +112,42 @@ const animate = () => {
         removeGrid(scene)
     }
 
+    // if (config.backgroundColor !== lastConfig.backgroundColor || lastConfig === undefined || true) {
+    //     scene.background = new THREE.Color(config.backgroundColor)
+    // }
+
+    // if (config.mode !== lastConfig.mode || lastConfig === undefined || true) {
+    //     if (config.mode == 'tube') {
+    //         scene.remove(line.object)
+    //         tube.update()
+    //         scene.add(tube.object)
+    //     } else {
+    //         scene.remove(tube.object)
+    //         line.update()
+    //         scene.add(line.object)
+    //     }
+    // }
+    
+    // if (config.axes !== lastConfig.axes || lastConfig === undefined || true) {
+    //     if (config.axes) {
+    //         setAxes(scene)
+    //     } else {
+    //         removeAxes(scene)
+    //     }
+    // }
+
+    // if (config.grid !== lastConfig.grid || lastConfig === undefined || true) {
+    //     if (config.grid) {
+    //         setGrid(scene)
+    //     } else {
+    //         removeGrid(scene)
+    //     }
+    
+    // }
+
     render()
     stats.end()
+
+    lastConfig = {...config}
 }
 animate()

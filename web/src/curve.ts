@@ -13,10 +13,16 @@ interface Curve {
     readonly points: Array<Point>,
 }
 
+let socket: WebSocket
+
 export let curve: THREE.Curve<Vector3> | null = null
 
-if (process.env.WS_URL !== undefined) {
-    const socket = new WebSocket(`${process.env.WS_URL}/down/0`)
+export const reconnect = (baseUrl: string, channel: number) => {
+    if (socket !== undefined) {
+        socket.close()
+    }
+
+    socket = new WebSocket(`${baseUrl}/down/${channel}`)
     socket.addEventListener('open', event => {
         socket.send('Hello, Server')
     })
