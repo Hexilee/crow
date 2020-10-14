@@ -1,4 +1,5 @@
 pub mod mock;
+pub mod ws_channel;
 
 mod curvature_splines;
 use async_std::sync::{Mutex, RwLock};
@@ -48,6 +49,14 @@ impl SyncChannel {
     pub async fn deregister(&self, index: usize) -> Sender {
         self.0.write().await.remove(index).into_inner()
     }
+
+    pub async fn deregister_all(&self) {
+        for sender in self.0.write().await.drain() {
+            if let Err(err) = sender.lock().await.close().await {
+                error!("error in close websocket: {}", err)
+            }
+        }
+    }
 }
 
 impl SyncChannels {
@@ -68,5 +77,10 @@ impl SyncChannels {
                 format!("channel {} not found", index)
             )),
         }
+    }
+
+    pub async fn remove_channel(&self, index: usize) {
+        let channel = self.0.write().await.remove(index);
+        channel.deregister_all().await
     }
 }

@@ -22,7 +22,7 @@ export const reconnect = (baseUrl: string, channel: number) => {
         socket.close()
     }
 
-    socket = new WebSocket(`${baseUrl}/down/${channel}`)
+    socket = new WebSocket(`${baseUrl}/downstream/${channel}`)
     socket.addEventListener('open', event => {
         socket.send('Hello, Server')
     })

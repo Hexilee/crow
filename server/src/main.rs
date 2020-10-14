@@ -2,8 +2,9 @@ mod channels;
 mod curve;
 
 use channels::mock::cos_channel;
+use channels::ws_channel;
 use channels::SyncChannels;
-use futures::{stream::SplitStream, SinkExt, StreamExt};
+use futures::{stream::SplitStream, SinkExt, StreamExt, TryFutureExt};
 use log::{debug, error, info, warn};
 use roa::cors::Cors;
 use roa::http::Method;
@@ -29,7 +30,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "/",
         allow([Method::GET], Websocket::new(handle_downstream_client)),
     );
-    let router = Router::new().include("/down/:id", downstream_router);
+    let router = Router::new()
+        .on("upstream", Websocket::new(handle_upstream_client))
+        .include("/downstream/:id", downstream_router);
     App::state(channels)
         .gate(logger)
         .gate(Cors::new())
@@ -43,6 +46,21 @@ async fn subscribe_guard(ctx: &mut Context<SyncChannels>, next: Next<'_>) -> roa
     let index: usize = ctx.must_param("id")?.parse()?;
     ctx.get_channel(index).await?;
     next.await
+}
+
+async fn handle_upstream_client(ctx: Context<SyncChannels>, stream: SocketStream) {
+    let (index, channel) = ctx.new_channel().await;
+    let (mut sender, receiver) = stream.split();
+    let result = sender
+        .send(Message::Text(
+            serde_json::to_string(&serde_json::json!({ "id": index })).unwrap(),
+        ))
+        .and_then(|_| ws_channel::handle(channel, receiver))
+        .await;
+    if let Err(err) = result {
+        error!("ws error: {}", err)
+    }
+    ctx.remove_channel(index).await
 }
 
 async fn handle_downstream_client(ctx: Context<SyncChannels>, stream: SocketStream) {
