@@ -10,7 +10,7 @@ Refer to [Frontend](https://github.com/Hexilee/crow/tree/master/web), there is a
 #### Backend
 
 Refer to [Backend](https://github.com/Hexilee/crow/tree/master/server), there is a deployment on
-[https://curve.hexilee.me:8000/](https://curve.hexilee.me:8000/ws).
+[https://curve.hexilee.me:8000/ws](https://curve.hexilee.me:8000/ws).
 
 
 ### Data Source
