@@ -21,7 +21,7 @@ Register a raw data source by a websocket query on `<base_url>/upstream`,
 ```javascript
 let source = new WebSocket("wss://curve.hexilee.me:8000/ws/upstream")
 source.addEventListener('open', event => {
-    socket.send('Hello, Server')
+    source.send('Hello, Server')
 })
 source.addEventListener('message', event => {
     console.log(event.data)
