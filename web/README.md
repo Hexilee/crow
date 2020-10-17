@@ -5,21 +5,19 @@
 - TypeScript
 - WebGL
     - three.js
-- grpc-web
+- WebSocket
 
 #### Development Tools
 
-- protobuf
-
-```bash
-> protoc --version
-```
-
-- yarn(Recommended)
+- yarn(Recommend)
 
 ```bash
 > yarn install
 ```
+
+#### Config
+
+create a `.env` file, refer to `.env-example` for more details.
 
 #### Debug
 
@@ -41,10 +39,3 @@ Then you can serve `dist` fold.
 
 This script will run a simple `http-server` on `dist` fold.
 
-#### Regenerate GRPC Code
-
-Run after proto files are changed, just:
-
-```bash
-> yarn install
-```
